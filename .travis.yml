@@ -18,3 +18,4 @@ after_success:
   - mv target/doc doc
   - git add doc
   - git commit -m "update docs"
+  - git push
