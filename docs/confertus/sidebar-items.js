@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["commands",""],["static_vector",""],["vector",""]],"struct":[["Config","Configuration for command line arguments."]]});
