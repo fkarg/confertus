@@ -1,7 +1,7 @@
 # confertus
 [![Build Status](https://app.travis-ci.com/fkarg/confertus.svg?branch=main)](https://app.travis-ci.com/fkarg/confertus)
 
-Implementation of succinct bit vectors for lecture 'advanced datastructures' at KIT.
+Implementation of succinct bit vectors for lecture 'advanced datastructures' at KIT. Find [code documentation here](https://www.fkarg.me/confertus/docs/confertus/)
 
 Dynamic Bitvector with operations:
 - access
@@ -20,13 +20,16 @@ Dynamic Tree datastructure (via Balanced Parentheses) with operations:
 
 
 ## Install Rust
-according to [their website](https://www.rust-lang.org/learn/get-started) this is how to install rust:
+according to [the official rust website](https://www.rust-lang.org/learn/get-started) you install rust via:
 ```sh
 $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 $ # Ensure that ~/.local/bin is in your PATH.
-$ # now we need to set and update the toolchain
+$ # now we need to set the default toolchain
 $ rustup default stable
+$ # Build and run with (debug)
+$ cargo run <args>
+$ # Build and run (optimized)
+$ cargo run --release <args>
 ```
 
-Build and run with `cargo run`, best performance can be achieved with `cargo
-run --release`. Does not depend on external libraries apart from `std`.
+Does not depend on external libraries, but uses `std`.
