@@ -1,4 +1,6 @@
 # confertus
+[![Build Status](https://app.travis-ci.com/fkarg/confertus.svg?branch=main)](https://app.travis-ci.com/fkarg/confertus)
+
 Implementation of succinct bit vectors for lecture 'advanced datastructures' at KIT.
 
 Dynamic Bitvector with operations:
@@ -26,4 +28,5 @@ $ # now we need to set and update the toolchain
 $ rustup default stable
 ```
 
-Run with `cargo run`, for performance with `--release`
+Build and run with `cargo run`, best performance can be achieved with `cargo
+run --release`. Does not depend on external libraries apart from `std`.
