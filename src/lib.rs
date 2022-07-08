@@ -1,4 +1,6 @@
+// deactivate later on again
 #![allow(dead_code)]
+#![allow(unused_mut)]
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
@@ -17,39 +19,23 @@ pub mod traits;
 /// Module providing commonly used utility functions
 pub mod utils;
 
-/// Contains implementation of AVL tree
+/// First implementation approach using AVL trees
 pub mod avl_tree;
 
-/// Configuration for command line arguments.
-pub struct Config {
-    /// Which algorithm to use. Options are `bv` and `bp`
-    pub algo: String,
-    /// name of file with input commands
-    pub file_in: String,
-    /// name of file to write results to
-    pub file_out: String,
-}
+/// Actual implementation of dynamic bit vector with AVL Tree
+pub mod dynamic_vector;
 
-impl Config {
-    /// Create new Configuration instance based on arguments passed
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() <= 3 {
-            return Err("Usage with parameters is `[bv|bp] input_file output_file`");
-        }
+/// Configuration for command line arguments
+pub mod config;
 
-        let algo = args[1].clone();
-
-        if algo != "bv" && algo != "bp" {
-            return Err("algo needs to be either `bp` or `bv`");
-        }
-
-        let file_in = args[2].clone();
-        let file_out = args[3].clone();
-
-        Ok(Config {
-            algo,
-            file_in,
-            file_out,
-        })
-    }
-}
+#[doc = include_str!("../README.md")]
+pub use crate::{
+    commands::*,
+    static_vector::*,
+    vector::*,
+    traits::*,
+    utils::*,
+    avl_tree::*,
+    dynamic_vector::*,
+    config::*,
+};

@@ -7,13 +7,37 @@ use std::process;
 // use std::fs;
 use confertus::avl_tree::AVL;
 use confertus::commands;
-use confertus::Config;
+use confertus::config::Config;
+
+use std::mem::size_of;
+
+macro_rules! show_size {
+    (header) => {
+        println!("{:<22} {:>4}    {}", "Type", "T", "Option<T>");
+    };
+    ($t:ty) => {
+        println!(
+            "{:<22} {:4} {:4}",
+            stringify!($t),
+            size_of::<$t>(),
+            size_of::<Option<$t>>()
+        )
+    };
+}
 
 /// TODO
 /// - [ ] Static Bit Vector
 /// - [ ] Some kind of self-balancing binary tree (AVL / Red-Black / ...)
 /// - [ ] Range-Min-Max-Tree
 fn main() {
+    show_size!(header);
+    show_size!(usize);
+    show_size!(isize);
+    show_size!(AVL);
+    show_size!(Box<AVL>);
+    show_size!(i32);
+    show_size!(u32);
+
     let args: Vec<String> = env::args().collect();
 
     let config = Config::new(&args).unwrap_or_else(|err| {
