@@ -4,18 +4,18 @@ cache: cargo
 
 rust:
   - stable
-  - beta
-  - nightly
+    # - beta
+    # - nightly
 
 jobs:
   allow_failures:
     - rust: nightly
   fast_finish: true
 
-after_success:
-  - cargo doc
-  - git checkout gh-pages
-  - mv target/doc doc
-  - git add doc
-  - git commit -m "update docs"
-  - git push
+    # after_success:
+    #   - cargo doc
+    #   - git checkout gh-pages
+    #   - mv target/doc doc
+    #   - git add doc
+    #   - git commit -m "update docs"
+    #   - git push
