@@ -1,6 +1,24 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
+/// Module for parsing and building cli commands and args
 pub mod commands;
+
+/// Static bit vector implementation: `SBitVec` used as Leaf for dynamic bit vectors `DynBitV`
 pub mod static_vector;
+
+/// Dynamic Bit vector implementation for `Vec`: `V`
 pub mod vector;
+
+/// Contains traits for `StaticBitVec`, `DynBitVec` and `DynBitTree`
+pub mod traits;
+
+/// Module providing commonly used utility functions
+pub mod utils;
+
+/// Contains implementation of AVL tree
+pub mod avl_tree;
 
 /// Configuration for command line arguments.
 pub struct Config {
