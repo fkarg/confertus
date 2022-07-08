@@ -18,33 +18,36 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-pub fn insert(mut tree: AVL, command: Vec<&str>) -> AVL {
+pub fn insert(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let index = command[1].parse::<usize>().unwrap();
     // let bit = command[2].parse::<bool>().unwrap();
     let bit = command[2] != "0";
-    tree.insert(index, bit);
-    return tree;
+    vec.insert(index, bit);
+    return vec;
 }
 
-pub fn delete(ref mut vec: DynamicBitVector, command: Vec<&str>) {
+pub fn delete(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let index = command[1].parse::<usize>().unwrap();
     vec.delete(index);
+    return vec;
 }
 
-
-pub fn flip(ref mut vec: DynamicBitVector, command: Vec<&str>) {
+pub fn flip(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let index = command[1].parse::<usize>().unwrap();
     vec.flip(index);
+    return vec;
 }
 
-pub fn rank(ref mut vec: DynamicBitVector, command: Vec<&str>) {
+pub fn rank(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
     vec.rank(bit, index);
+    return vec;
 }
 
-pub fn select(ref mut vec: DynamicBitVector, command: Vec<&str>) {
+pub fn select(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
     vec.select(bit, index);
+    return vec;
 }

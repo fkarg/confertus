@@ -28,14 +28,11 @@ pub mod dynamic_vector;
 /// Configuration for command line arguments
 pub mod config;
 
+mod leaf;
+mod node;
+
 #[doc = include_str!("../README.md")]
 pub use crate::{
-    commands::*,
-    static_vector::*,
+    avl_tree::*, commands::*, config::*, dynamic_vector::*, static_vector::*, traits::*, utils::*,
     vector::*,
-    traits::*,
-    utils::*,
-    avl_tree::*,
-    dynamic_vector::*,
-    config::*,
 };
