@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SVector",""]]});
+initSidebarItems({"struct":[["SBitVec",""]]});

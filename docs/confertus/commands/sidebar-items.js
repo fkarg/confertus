@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["read_lines","The output is wrapped in a Result to allow matching on errors Returns an Iterator to the Reader of the lines of the file."]]});
+initSidebarItems({"fn":[["insert",""],["read_lines","Read large files line by line in Rust Efficient (cache) implementations to read file line-by-line https://stackoverflow.com/questions/45882329/read-large-files-line-by-line-in-rust"]]});
