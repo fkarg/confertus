@@ -21,11 +21,11 @@ pub struct Node {
     pub ones: usize, // 8 bytes
     /// difference of height between left and right subtree
     pub balance: i8, // 2 bit (valid values: -1, 0, 1)
-                     // left - right
-                     // insertion to right decreases
-                     // insertion to left increases
-                     // deletion from right increases
-                     // deletion from left decreases
+                     // right - left
+                     // insertion to right increases
+                     // insertion to left decreases
+                     // deletion from right decreases
+                     // deletion from left increases
 }
 
 impl Node {

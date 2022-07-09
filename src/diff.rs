@@ -49,20 +49,20 @@ impl Diff {
         }
     }
 
-    /// Node creation in right subtree: balance is shifted -1
+    /// Node creation in right subtree: balance is shifted +1
     #[inline]
     pub fn create_right_node() -> Self {
         Diff {
-            balance: -1,
+            balance: 1,
             ..Diff::default()
         }
     }
 
-    /// Node creation in right subtree: balance is shifted -1
+    /// Leaf creation in right subtree: balance is shifted +1
     #[inline]
     pub fn create_right_leaf() -> Self {
         Diff {
-            balance: -1,
+            balance: 1,
             size: LeafValue::BITS as isize,
             ..Diff::default()
         }
@@ -73,7 +73,7 @@ impl Diff {
     #[inline]
     pub fn move_child_right_to_left() -> Self {
         Diff {
-            balance: 1,
+            balance: -1,
             ..Diff::default()
         }
     }

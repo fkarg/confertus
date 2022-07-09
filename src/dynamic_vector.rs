@@ -64,7 +64,7 @@ impl DynamicBitVector {
         DynamicBitVector {
             root: 0,
             nodes: vec![Node::new()], // create root node, but no children yet
-            leafs: vec![],
+            leafs: vec![Leaf::new(0)],
         }
     }
 
