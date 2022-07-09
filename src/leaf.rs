@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// Primitive type used as bit container in [`Leaf`]. Probably [`u64`] or [`u128`].
 pub type LeafValue = u64;
 
@@ -5,7 +7,7 @@ pub type LeafValue = u64;
 /// (`nums`), it contains a reference to its parent [`crate::Node`].
 ///
 /// bit size: 17~25 bytes
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(PartialEq, Clone, Default)]
 pub struct Leaf {
     /// reference to parent [`crate::Node`]
     pub parent: usize, // 8 bytes
@@ -14,6 +16,24 @@ pub struct Leaf {
     /// number of bits used in `value`-container. Below `u128::BITS == 128`, so `u8::MAX = 255` is
     /// sufficient
     pub nums: u8, // realistically below u128::BITS, so u8::MAX = 255 is sufficient. // 1 byte
+}
+
+impl fmt::Debug for Leaf {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if LeafValue::BITS == 64 {
+            write!(
+                f,
+                "Leaf[P: <{:3}>, nums {:2}, value {:#066b}]",
+                self.parent, self.nums, self.value
+            )
+        } else {
+            write!(
+                f,
+                "Leaf[P: <{:3}>, nums {:3}, value {:#0130b}]",
+                self.parent, self.nums, self.value
+            )
+        }
+    }
 }
 
 impl Leaf {
@@ -52,15 +72,18 @@ impl Leaf {
     ///
     /// # Panics
     /// If the capacity `nums` exceeds `LeafValue::BITS` bits.
-    ///
-    /// # Safety
     pub unsafe fn push_unchecked(&mut self, bit: bool) {
         self.value |= (bit as LeafValue) << self.nums;
         self.nums += 1;
     }
 
+    /// Insert `bit` at position `index` in [`Leaf`].
+    pub fn insert(&mut self, index: usize, bit: bool) {
+        unsafe { self.insert_unchecked(index, bit) }
+        todo!()
+    }
+
     /// Unchecked version of [`Leaf::insert`]
-    /// # Safety
     // TODO: update ones
     pub unsafe fn insert_unchecked(&mut self, index: usize, bit: bool) {
         let lmask = LeafValue::MAX.rotate_left(LeafValue::BITS - index as u32);
@@ -81,6 +104,17 @@ impl Leaf {
 
     pub fn ones(&self) -> usize {
         self.value.count_ones() as usize
+    }
+
+    pub fn rank(&self, bit: bool, index: usize) -> usize {
+        // TODO: without including `bit` for ones
+        (self.value & LeafValue::MAX.rotate_left(LeafValue::BITS - index as u32)).count_ones()
+            as usize;
+        todo!();
+    }
+
+    pub fn select(&self, bit: bool, index: usize) -> usize {
+        todo!()
     }
 
     pub fn nums(&self) -> usize {

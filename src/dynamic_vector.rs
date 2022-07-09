@@ -1,7 +1,7 @@
 // use super::traits;
-pub use super::diff::*;
 pub use super::leaf::*;
 pub use super::node::*;
+use std::fmt;
 use std::ops::{Index, IndexMut};
 
 /// Implementation of Dynamic Bit Vector using AVL/RB tree.
@@ -17,6 +17,20 @@ pub struct DynamicBitVector {
     // negatively indexed, isize
     /// Vector containing [`Leaf`]
     pub leafs: Vec<Leaf>, // 24 bytes
+                          // last: isize, // 8 bytes, index to right-most leaf
+                          // prev: isize, // 8 bytes, index to previously accessed leaf
+}
+
+impl fmt::Display for DynamicBitVector {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#?}", self)
+        // write!(f, "BV[root {}\nnodes: {:?}\nleafs: {:?}]", self.root, self.nodes, self.leafs)
+        // f.debug_struct("DynamicBitVector")
+        //        .field("root", &self.root)
+        //        .field("nodes", &self.nodes.iter().enumerate())
+        //        .field("leafs", &self.leafs.iter().enumerate())
+        //        .finish()
+    }
 }
 
 impl Index<usize> for DynamicBitVector {
@@ -103,7 +117,7 @@ impl DynamicBitVector {
     ///
     /// Assumes that intermediary node does not have children (overwrites `left` child otherwise)
     /// or otherwise relevant information (`nums` and `ones` get overwritten too).
-    fn insert_node(&mut self, child_id: isize, int_node_id: usize) -> Diff {
+    fn insert_node(&mut self, child_id: isize, int_node_id: usize) {
         let parent_id = self[child_id].parent;
         if let Some(l) = self[parent_id].left {
             if l == child_id {
@@ -124,15 +138,13 @@ impl DynamicBitVector {
     }
 
     #[inline]
-    fn insert_node_common(&mut self, child_id: isize, parent_id: usize, int_id: usize) -> Diff {
+    fn insert_node_common(&mut self, child_id: isize, parent_id: usize, int_id: usize) {
         self[child_id].parent = int_id;
         self[int_id].parent = Some(parent_id);
         self[int_id].left = Some(child_id);
-        // setting nums and ones later when consuming diff
         self[int_id].nums = self[child_id].nums();
         self[int_id].ones = self[child_id].ones();
-        self[int_id].balance = -1; // 'left-leaning'
-        Diff::default()
+        self[int_id].rank = -1; // 'left-leaning'
     }
 
     /// Inserts new [`Node`] to position of current leaf, making it the left child of the newly
@@ -140,12 +152,12 @@ impl DynamicBitVector {
     ///
     /// Returns id of newly created Node.
     #[inline]
-    fn insert_node_at_leaf(&mut self, leaf: isize) -> (usize, Diff) {
+    fn insert_node_at_leaf(&mut self, leaf: isize) -> usize {
         // offset by one between index and length
         let new_node_id = self.nodes.len();
         self.nodes.push(Node::new());
-        let diff = self.insert_node(leaf, new_node_id);
-        (new_node_id, diff)
+        self.insert_node(leaf, new_node_id);
+        new_node_id
     }
 
     /// Move the right subtree to the left side. Expects the left subtree to be empty (will be
@@ -153,7 +165,8 @@ impl DynamicBitVector {
     ///
     /// # Panics
     /// If right child is [`None`]
-    fn move_right_child_left(&mut self, node: usize) -> Diff {
+    fn move_right_child_left(&mut self, node: usize) {
+        println!("Moving R to L in {:?}", self[node]);
         self[node].left = self[node].right;
         self[node].right = None;
 
@@ -164,16 +177,23 @@ impl DynamicBitVector {
         // update `nums` and `ones` accordingly
         self[node].nums = self[left_id].nums();
         self[node].ones = self[left_id].ones();
-        Diff::move_child_right_to_left()
+        self[node].rank -= 2;
     }
 
+    #[inline]
     pub fn push(&mut self, bit: bool) {
         // let root = self.root;
-        let diff = self.push_to(self.root, bit);
-        self.consume_diff(self.root, diff);
+        self.push_to(self.root, bit);
     }
 
-    /// Append `bit` to the end, which is to say to the rightmost subtree.
+    fn propagate_size_rank_up(&mut self, node: usize) {
+        if let Some(p) = self[node].parent {
+            self.propagate_size_rank_up(p);
+        }
+        todo!();
+    }
+
+    /// Append `bit` to the rightmost position in the rightmost [`Leaf`].
     ///
     /// Invariances:
     /// - `nums` has number of bits in left subtree
@@ -182,158 +202,152 @@ impl DynamicBitVector {
     ///     -> won't change
     /// - `balance`-difference between two subtrees must not exceed 2, otherwise rotate
     ///     -> check when creating/inserting a new node/leaf
-    ///
-    /// # Returns [`Diff`]
-    /// to propagate changes back after descending
-    fn push_to(&mut self, node: usize, bit: bool) -> Diff {
-        // node is guaranteed to be a node. push to rightmost place. First: Find leaf
+    /// - `size` should have information about total capacity
+    ///     -> update when creating new [`Leaf`]
+    fn push_to(&mut self, node: usize, bit: bool) {
+        // First, find rightmost Leaf. Descend tree right-based.
         if let Some(r) = self[node].right {
             // if the id `r` is positive, it's a node, if it's negative, it's a leaf
-            if r > 0 {
-                // node found. push there instead
-                let diff = self.push_to(r as usize, bit);
-                self.consume_diff(r as usize, diff)
+            if r >= 0 {
+                // node found. push there
+                self.push_to(r as usize, bit);
             } else {
-                // r is Leaf
-                let diff = self.push_right_leaf(node, r, bit);
-                self.consume_diff(node, diff)
+                // rightmost Leaf found. `push_right_leaf` walks through all possible cases
+                self.push_right_leaf(node, r, bit);
             }
         } else {
-            // no right-side child. create leaf and insert
+            println!("Create Leaf on right side of {:#?}", self[node]);
+            // no right-side child. create leaf and insert as right child
             let new_leaf_id = -(self.leafs.len() as isize);
             self.leafs.push(Leaf::new(node));
             // inseart newly created leaf to right side
             self[node].right = Some(new_leaf_id);
+            // self[node].size += LeafValue::BITS as usize;
 
-            // update diff to includes changes from creating the leaf
-            let diff = self.push_right_leaf(node, new_leaf_id, bit) + Diff::create_right_leaf();
-            self.consume_diff(node, diff)
+            // add +1 to rank for creating leaf on right side
+            // update `rank` up to the root
+            self.retrace_increase(node);
+
+            // now, we can push into the right side leaf we just created
+            self.push_to(node, bit);
         }
     }
 
     /// Given a [`Node`] `node` and its child [`Leaf`] `leaf`, append `bit` to the end.
     ///
     /// # Cases:
-    /// - OK: insertion was possible
+    /// - OK: insertion was possible. No need to update anything
     /// - Err: Capacity of right leaf full. Check if left child exists.
     ///     - if no, move right to left, create new right one, push there.
     ///     - if yes, insert new node at position of right leaf, move leaf to left of newly created
     ///     node, create new right leaf, and push there.
-    ///
-    /// # Returns: [`Diff`]
-    fn push_right_leaf(&mut self, node: usize, leaf: isize, bit: bool) -> Diff {
+    fn push_right_leaf(&mut self, node: usize, leaf: isize, bit: bool) {
         match self[leaf].push(bit) {
             // Leaf.push
-            Ok(_) => Diff::insert_right(),
+            Ok(_) => (),
             Err(_) => {
-                // first, check if left child exists.
+                // Capacity on right leaf full.
+                // check if left child exists
                 if let Some(_) = self[node].left {
                     // Something exists on left side. So we need to insert a new node at the right
                     // side at the current position of `leaf`.
-                    let (new_node_id, diff_insert) = self.insert_node_at_leaf(leaf);
+                    let new_node_id = self.insert_node_at_leaf(leaf);
+
+                    // update `rank` up to the root
+                    self.retrace_increase(node);
+                    // self.propagate_size_balance_up(node)
 
                     // check if tree needs to rebalance now
-                    if i8::abs(self[node].balance + diff_insert.balance + 1) >= 2 {
-                        self[node].balance += diff_insert.balance;
-                        // tree needs rebalancing.
-                        self.balance(node);
-                        // afterwards, insert at top again
-                        self.push(bit);
-                        return Diff::default();
-                    }
-                    // We don't need to rebalance, so we can again use `push_to` instead.
+                    // if i8::abs(self[node].rank) == 1 {
+                    //     // tree needs rebalancing.
+                    //     self.rebalance(node);
+                    //     // afterwards, insert at top again
+                    // }
+
+                    // next, we need to insert a new Leaf and push into it.
+                    // Luckily, we already have code for that
                     self.push_to(new_node_id, bit);
-                    diff_insert
-
-                    // let new_leaf_id = -(self.leafs.len() as isize);
-                    // self.leafs.push(Leaf::new(new_node_id));
-
-                    // // leaf is now left child of `new_node_id`
-                    // self[new_node_id].right = Some(new_leaf_id);
-
-                    // // finally push to new right leaf
-                    // let diff = self.push_right_leaf(new_node_id, new_leaf_id, bit);
-
-                    // // update diff: balance is -1 from previous
-                    // diff_insert + diff + Diff::create_right_node() + Diff::create_right_leaf()
-                    // total balance: diff + (-1) + (-1) + (+1) = diff - 1
                 } else {
-                    // No child on left side. Move right leaf over and create new leaf
-                    // no right-side child. Recurse with `push_to` on same node.
-                    let diff_move = self.move_right_child_left(node);
-                    let diff_push = self.push_to(node, bit);
-                    // TODO: diff_push might get consumed twice?
-                    // (`push_to` with consumation is twice in call chain ... don't add here?
-                    // don't consume here, as it will be consumed higher up the call chain
-                    // diff_move + diff_push
-                    diff_move
+                    // No child on left side. Move right leaf over to left side.
+                    // then we need to insert a new leaf and push into it.
+                    // Luckily, we already have code for that
+                    self.move_right_child_left(node);
+                    self.push_to(node, bit);
                 }
             }
         }
     }
 
-    /// Consume given diff and update node values accordingly.
-    /// Returns (modified) diff to propagate upwards
-    ///
-    /// `from_right`: if the values come from a right descent
-    fn consume_diff(&mut self, node: usize, diff: Diff) -> Diff {
-        //, from_right: bool) -> Diff {
-        // nums:  // might not be needed?
-        // ones:  // might not be needed?
-
-        // size: changes when leaf got created or removed
-        // update difference in size first
-        // (if a leaf got created or removed)
-        if diff.size != 0 {
-            if diff.size > 0 {
-                self[node].size += diff.size as usize;
-            } else {
-                self[node].size -= -diff.size as usize;
-            }
+    fn retrace_increase(&mut self, node: usize) {
+        // first, update balancing of node
+        self[node].rank += 1;
+        if self[node].rank == 0 {
+            // we cancelled out an earlier inbalance. stop.
+            return
+        } else if self[node].rank == 2 {
+            // we can now rebalance, no need to continue tracing
+            self.rebalance(node);
+            return
         }
-
-        // balance: changes when node got inserted
-        if i8::abs(self[node].balance + diff.balance) >= 2 {
-            // TODO: update diff based on new balancing
-            self.balance(node);
+        if let Some(p) = self[node].parent {
+            // propagate to parent
+            self.retrace_increase(p);
         }
-        diff
+        // else: found root, we're done
+    }
+
+    fn retrace_decrease(&mut self, node: usize) {
+        // first, update balancing of node
+        self[node].rank -= 1;
+        if self[node].rank == 0 {
+            // we cancelled out an earlier inbalance. stop.
+            return
+        } else if self[node].rank == -2 {
+            // we can now rebalance, no need to continue tracing
+            self.rebalance(node);
+            return
+        }
+        if let Some(p) = self[node].parent {
+            // propagate to parent
+            self.retrace_decrease(p);
+        }
+        // else: found root, we're done
     }
 
     /// right becomes parent (?)
     fn rotate_left(&mut self, parent: isize, right: isize) {
-        todo!("{:?}", self)
+        todo!(".rotate_left {}", self)
     }
 
     /// left becomes parent (?)
     fn rotate_right(&mut self, left: isize, parent: isize) {
-        todo!("{:?}", self)
+        todo!(".rotate_right {}", self)
     }
 
     /// check if the tree needs to rebalance after the `balance`-value of `node` has been updated
-    pub fn balance(&mut self, node: usize) {
+    pub fn rebalance(&mut self, node: usize) {
         // invariance has been broken at node.
-        todo!("{:?}", self)
+        todo!(".rebalance {}", self)
     }
 
     pub fn insert(&mut self, index: usize, bit: bool) {
-        todo!("{:?}", self)
+        todo!(".insert {}", self)
     }
 
     pub fn delete(&mut self, index: usize) {
-        todo!("{:?}", self)
+        todo!(".delete {}", self)
     }
 
     pub fn flip(&mut self, index: usize) {
-        todo!("{:?}", self)
+        todo!(".flip {}", self)
     }
 
     pub fn rank(&mut self, bit: bool, index: usize) {
-        todo!("{:?}", self)
+        todo!(".rank {}", self)
     }
 
     pub fn select(&mut self, bit: bool, index: usize) {
-        todo!("{:?}", self)
+        todo!(".select {}", self)
     }
 
     pub fn nums(self) -> usize {

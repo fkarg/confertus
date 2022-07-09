@@ -1,9 +1,11 @@
+use std::fmt;
+
 /// Node element of [`super::DynamicBitVector`]. Contains references (indices) to parent `Node`,
 /// left and right subtrees, as well as `nums`, the number of used bits in the left subtree, `ones`
 /// the number of ones in the left subtree, and `size`, the total capacity of the current subtree.
 ///
 /// maximum ideal instance size: 48 bytes + 5 bit
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(PartialEq, Clone, Default)]
 pub struct Node {
     // TODO: remove option from values to reduce used bit sizes
     /// reference to parent Node
@@ -14,18 +16,28 @@ pub struct Node {
     pub right: Option<isize>, // 8 bytes + 1bit
     //// total number of filled bits, across both subtrees
     /// total bit capacity, across both subtrees
-    pub size: usize, // 8 bytes
+    pub size: usize, // 8 bytes // not necessary?
     /// number of 'filled' bits on the left  subtree
     pub nums: usize, // 8 bytes
     /// number of ones on the left subtree
     pub ones: usize, // 8 bytes
     /// difference of height between left and right subtree
-    pub balance: i8, // 2 bit (valid values: -1, 0, 1)
-                     // right - left
-                     // insertion to right increases
-                     // insertion to left decreases
-                     // deletion from right decreases
-                     // deletion from left increases
+    pub rank: i8, // 2 bit (valid values: -1, 0, 1)
+                  // diff of height: right - left
+                  // insertion to right increases
+                  // insertion to left decreases
+                  // deletion from right decreases
+                  // deletion from left increases
+}
+
+impl fmt::Debug for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Node[P: <{:3?}>, L: {:4?}, R: {:4?}, nums {}, ones {}, rank {}]",
+            self.parent, self.left, self.right, self.nums, self.ones, self.rank
+        )
+    }
 }
 
 impl Node {
@@ -37,11 +49,11 @@ impl Node {
             size: 0,
             nums: 0,
             ones: 0,
-            balance: 0,
+            rank: 0,
         }
     }
 
-    /// Used when inserting a Node in place of a [`super::Leaf`] or rotating to keep balance
+    /// Used when inserting a Node in place of a [`super::Leaf`] or rotating to keep rank
     pub fn replace_child_with(&mut self, child: isize, new_child: isize) {
         if let Some(l) = self.left {
             if l == child {
@@ -61,7 +73,7 @@ impl Node {
         );
     }
 
-    fn balance(self) -> i8 {
-        self.balance
+    fn rank(self) -> i8 {
+        self.rank
     }
 }
