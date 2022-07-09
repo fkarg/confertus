@@ -4,6 +4,8 @@ pub use super::node::*;
 use std::fmt;
 use std::ops::{Index, IndexMut};
 
+type Child = bool;
+
 /// Implementation of Dynamic Bit Vector using AVL/RB tree.
 ///
 /// Current size: 56 bytes
@@ -118,6 +120,7 @@ impl DynamicBitVector {
     /// Assumes that intermediary node does not have children (overwrites `left` child otherwise)
     /// or otherwise relevant information (`nums` and `ones` get overwritten too).
     fn insert_node(&mut self, child_id: isize, int_node_id: usize) {
+        println!("Insert Node {} for {}", int_node_id, child_id);
         let parent_id = self[child_id].parent;
         if let Some(l) = self[parent_id].left {
             if l == child_id {
@@ -131,6 +134,7 @@ impl DynamicBitVector {
                 return self.insert_node_common(child_id, parent_id, int_node_id);
             }
         }
+        println!(".insert_node {}", self);
         panic!(
             "{} not subtree of current Node (parent {:?}).",
             child_id, parent_id
@@ -216,17 +220,22 @@ impl DynamicBitVector {
                 self.push_right_leaf(node, r, bit);
             }
         } else {
-            println!("Create Leaf on right side of {:#?}", self[node]);
             // no right-side child. create leaf and insert as right child
             let new_leaf_id = -(self.leafs.len() as isize);
             self.leafs.push(Leaf::new(node));
+            println!(
+                "Create Leaf {} on right side of {:#?}",
+                new_leaf_id, self[node]
+            );
             // inseart newly created leaf to right side
             self[node].right = Some(new_leaf_id);
             // self[node].size += LeafValue::BITS as usize;
 
             // add +1 to rank for creating leaf on right side
+            self[node].rank += 1;
+
             // update `rank` up to the root
-            self.retrace_increase(node);
+            self.retrace(node, 1);
 
             // now, we can push into the right side leaf we just created
             self.push_to(node, bit);
@@ -254,7 +263,7 @@ impl DynamicBitVector {
                     let new_node_id = self.insert_node_at_leaf(leaf);
 
                     // update `rank` up to the root
-                    self.retrace_increase(node);
+                    self.retrace(new_node_id, 1);
                     // self.propagate_size_balance_up(node)
 
                     // check if tree needs to rebalance now
@@ -278,16 +287,39 @@ impl DynamicBitVector {
         }
     }
 
+    /// retrace rank of parent until root (or cancel, or rebalance)
+    fn retrace(&mut self, node: usize, diff: i8) {
+        if self[node].rank == 0 {
+            return;
+        }
+        // first, find parent
+        if let Some(parent) = self[node].parent {
+            self[parent].rank += diff;
+            if self[parent].rank == 0 {
+                // we cancelled out an earlier inbalance. stop.
+                return;
+            } else if i8::abs(self[parent].rank) == 2 {
+                // we can now rebalance, no need to continue tracing
+                self.rebalance(node, parent);
+                return;
+            }
+            // propagate to parent
+            self.retrace(parent, diff);
+        }
+        // else: found root, we're done
+    }
+
+    /// retrace rank of parent until root (or cancel, or rebalance)
     fn retrace_increase(&mut self, node: usize) {
         // first, update balancing of node
         self[node].rank += 1;
         if self[node].rank == 0 {
             // we cancelled out an earlier inbalance. stop.
-            return
+            return;
         } else if self[node].rank == 2 {
             // we can now rebalance, no need to continue tracing
-            self.rebalance(node);
-            return
+            self.rebalance(node, node);
+            return;
         }
         if let Some(p) = self[node].parent {
             // propagate to parent
@@ -296,16 +328,17 @@ impl DynamicBitVector {
         // else: found root, we're done
     }
 
+    /// retrace rank of parent until root (or cancel, or rebalance)
     fn retrace_decrease(&mut self, node: usize) {
         // first, update balancing of node
         self[node].rank -= 1;
         if self[node].rank == 0 {
             // we cancelled out an earlier inbalance. stop.
-            return
+            return;
         } else if self[node].rank == -2 {
             // we can now rebalance, no need to continue tracing
-            self.rebalance(node);
-            return
+            self.rebalance(node, node);
+            return;
         }
         if let Some(p) = self[node].parent {
             // propagate to parent
@@ -314,20 +347,89 @@ impl DynamicBitVector {
         // else: found root, we're done
     }
 
-    /// right becomes parent (?)
-    fn rotate_left(&mut self, parent: isize, right: isize) {
-        todo!(".rotate_left {}", self)
+    /// Rotate `parent` and `node` left.
+    ///
+    /// Assumes that `node` is right child of `parent`, `parent.rank == 2` and `node.rank == 1|0`.
+    /// (0 only happens for deletion)
+    ///
+    /// For Wikipedia, `parent` is X and `node` is Z.
+    fn rotate_left(&mut self, node: usize, parent: usize) -> usize {
+        if parent == self.root {
+            self.root = node;
+        }
+        let grand_parent = self[parent].parent;
+        self[node].parent = grand_parent;
+
+        self[parent].parent = Some(node);
+
+        self[parent].right = self[node].left;
+        self[node].left = Some(parent as isize);
+
+        self[node].rank = 0;
+        self[parent].rank = 0;
+
+        self[node].nums += self[parent].nums;
+        self[node].ones += self[parent].ones;
+
+        if let Some(r) = self[parent].right {
+            if r >= 0 {
+                // node
+                self[r as usize].parent = Some(parent);
+            } else {
+                // leaf
+                self[r].parent = parent;
+            }
+        }
+
+        parent
     }
 
     /// left becomes parent (?)
-    fn rotate_right(&mut self, left: isize, parent: isize) {
+    fn rotate_right(&mut self, node: usize, parent: usize) -> usize {
         todo!(".rotate_right {}", self)
     }
 
-    /// check if the tree needs to rebalance after the `balance`-value of `node` has been updated
-    pub fn rebalance(&mut self, node: usize) {
-        // invariance has been broken at node.
-        todo!(".rebalance {}", self)
+    /// Rebalance tree to reestablish the rank difference invariance (valid values -1, 0, 1).
+    /// This is done via rotations. For insertions, at most two rotations are necessary, deletions
+    /// might necessitate up until `log(depth)` rotations to reestablish balance.
+    ///
+    /// - `parent` is [`Node`] with temporary rank / balance factor violation
+    /// - `node` is [`Node`], higher child of `parent`
+    pub fn rebalance(&mut self, node: usize, parent: usize) {
+        println!(
+            "rebalance ranks: parent.r {} node.r {}",
+            self[parent].rank, self[node].rank
+        );
+        println!("rebalance node ids: parent {} node {}", parent, node);
+        // invariance has been broken at `parent`, while `node` is the 'higher' child. (unclear
+        // which side)
+        if let Some(r) = self[parent].right {
+            if r as usize == node {
+                // node is right child
+                if self[node].rank >= 0 {
+                    println!(" Right Right violation");
+                    self.rotate_left(node, parent);
+                } else {
+                    println!(" Right Left violation");
+                    // self.rotate_right()
+                    self.rotate_left(node, parent);
+                }
+            }
+        }
+        if let Some(l) = self[parent].left {
+            if l as usize == node {
+                // node is left child
+                if self[node].rank <= 0 {
+                    println!(" Left Left violation");
+                    self.rotate_right(node, parent);
+                } else {
+                    println!(" Left Right violation");
+                    // self.rotate_left()
+                    self.rotate_right(node, parent);
+                }
+            }
+        }
+        // todo!(".rebalance {}", self)
     }
 
     pub fn insert(&mut self, index: usize, bit: bool) {
