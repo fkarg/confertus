@@ -23,31 +23,31 @@ pub fn insert(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector
     // let bit = command[2].parse::<bool>().unwrap();
     let bit = command[2] != "0";
     vec.insert(index, bit);
-    return vec;
+    vec
 }
 
 pub fn delete(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let index = command[1].parse::<usize>().unwrap();
     vec.delete(index);
-    return vec;
+    vec
 }
 
 pub fn flip(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let index = command[1].parse::<usize>().unwrap();
     vec.flip(index);
-    return vec;
+    vec
 }
 
 pub fn rank(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
     vec.rank(bit, index);
-    return vec;
+    vec
 }
 
 pub fn select(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
     vec.select(bit, index);
-    return vec;
+    vec
 }

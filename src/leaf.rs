@@ -1,5 +1,3 @@
-// use std::result::Result;
-
 /// Primitive type used as bit container in [`Leaf`]. Probably [`u64`] or [`u128`].
 pub type LeafValue = u64;
 
@@ -7,7 +5,7 @@ pub type LeafValue = u64;
 /// (`nums`), it contains a reference to its parent [`crate::Node`].
 ///
 /// bit size: 17~25 bytes
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Default)]
 pub struct Leaf {
     /// reference to parent [`crate::Node`]
     pub parent: usize, // 8 bytes
@@ -28,7 +26,10 @@ impl Leaf {
     }
 
     /// Access bit value at position `index`
-    pub fn access(self, index: usize) -> bool {
+    ///
+    /// # Panics
+    /// If `index` > [`LeafValue::BITS`]
+    pub fn access(&self, index: usize) -> bool {
         (self.value >> index) & 1 == 1
     }
 
@@ -41,9 +42,9 @@ impl Leaf {
             unsafe {
                 self.push_unchecked(bit);
             }
-            return Ok(());
+            Ok(())
         } else {
-            return Err("tried to push value to full Leaf");
+            Err("tried to push value to full Leaf")
         }
     }
 
@@ -51,11 +52,15 @@ impl Leaf {
     ///
     /// # Panics
     /// If the capacity `nums` exceeds `LeafValue::BITS` bits.
+    ///
+    /// # Safety
     pub unsafe fn push_unchecked(&mut self, bit: bool) {
-        self.value = self.value | (bit as LeafValue) << self.nums;
+        self.value |= (bit as LeafValue) << self.nums;
         self.nums += 1;
     }
 
+    /// Unchecked version of [`Leaf::insert`]
+    /// # Safety
     // TODO: update ones
     pub unsafe fn insert_unchecked(&mut self, index: usize, bit: bool) {
         let lmask = LeafValue::MAX.rotate_left(LeafValue::BITS - index as u32);
@@ -72,5 +77,17 @@ impl Leaf {
         let rmask = LeafValue::MAX.rotate_right(index as u32);
         self.value = (self.value & lmask) | ((self.value & rmask) << 1);
         self.nums -= 1;
+    }
+
+    pub fn ones(&self) -> usize {
+        self.value.count_ones() as usize
+    }
+
+    pub fn nums(&self) -> usize {
+        self.nums.into()
+    }
+
+    fn balance(&self) -> i8 {
+        1
     }
 }

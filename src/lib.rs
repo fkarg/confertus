@@ -28,6 +28,7 @@ pub mod dynamic_vector;
 /// Configuration for command line arguments
 pub mod config;
 
+mod diff;
 mod leaf;
 mod node;
 
