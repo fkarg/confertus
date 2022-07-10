@@ -5,24 +5,23 @@ use std::fmt;
 /// left and right subtrees, as well as `nums`, the number of used bits in the left subtree, `ones`
 /// the number of ones in the left subtree, and `size`, the total capacity of the current subtree.
 ///
-/// maximum ideal instance size: 48 bytes + 5 bit
+/// Instance bit size: 40 bytes + 5 bit = 325 bit
+///
+/// Should `u32`/`i32` (4'294'967'295/2'147'483'647 values) suffice, size would be 20 bytes + 5 bit = 165 bit
 #[derive(PartialEq, Clone, Default)]
 pub struct Node {
     // TODO: remove option from values to reduce used bit sizes
-    /// reference to parent Node
+    /// index of parent Node, 8 bytes + 1bit
     pub parent: Option<usize>, // 8 bytes + 1bit
-    /// left side subtree where `isize` is the index to child element
+    /// left side subtree where `isize` is the index to child element, 8 bytes + 1bit
     pub left: Option<isize>, // 8 bytes + 1bit
-    /// right side subtree where `isize` is the index to child element
+    /// right side subtree where `isize` is the index to child element, 8 bytes + 1bit
     pub right: Option<isize>, // 8 bytes + 1bit
-    //// total number of filled bits, across both subtrees
-    /// total bit capacity, across both subtrees
-    pub size: usize, // 8 bytes // not necessary?
-    /// number of 'filled' bits on the left  subtree
+    /// number of 'filled' bits on the left  subtree, 8 byte
     pub nums: usize, // 8 bytes
-    /// number of ones on the left subtree
+    /// number of ones on the left subtree, 8 byte
     pub ones: usize, // 8 bytes
-    /// difference of height between left and right subtree
+    /// difference of height between left and right subtree. Valid values are (-1, 0, 1), 2bit
     pub rank: i8, // 2 bit (valid values: -1, 0, 1)
                   // diff of height: right - left
                   // insertion to right increases
@@ -41,24 +40,22 @@ impl fmt::Debug for Node {
     }
 }
 
+/// Since a lot of operations on Nodes require acessing others by an index, most functionality is
+/// implemented in [`crate::DynamicBitVector`] directly.
 impl Node {
+    /// Constructs new, empty `Node`.
     pub fn new() -> Self {
         Node {
             parent: None,
             left: None,
             right: None,
-            size: 0,
             nums: 0,
             ones: 0,
             rank: 0,
         }
     }
 
-    fn rank(self) -> i8 {
-        self.rank
-    }
-
-    /// Used when inserting a Node in place of a [`super::Leaf`] or rotating to keep rank
+    /// Used when inserting a Node in place of a [`crate::Leaf`] or rotating to keep rank
     pub fn replace_child_with(&mut self, child: isize, new_child: isize) {
         if let Some(l) = self.left {
             if l == child {

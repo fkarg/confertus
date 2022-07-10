@@ -70,3 +70,14 @@ pub trait Dot {
     /// Return `dot` representation for graph visualization. [Read more](https://graphviz.org/)
     fn dotviz(&self, self_id: isize) -> String;
 }
+
+/// Trait to get instance bit size for different structs
+pub trait BitSize {
+    /// Return total number of bits used by Type
+    fn bitsize(&self) -> usize
+    where
+        Self: Sized,
+    {
+        std::mem::size_of::<Self>()
+    }
+}

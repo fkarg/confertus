@@ -42,14 +42,14 @@ pub fn flip(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
 pub fn rank(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
-    vec.rank(bit, index);
+    vec.rank(index, bit);
     vec
 }
 
 pub fn select(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
-    vec.select(bit, index);
+    vec.select(index, bit);
     vec
 }
 

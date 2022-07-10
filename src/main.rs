@@ -6,7 +6,7 @@ use std::process;
 use confertus::avl_tree::AVL;
 use confertus::commands;
 use confertus::config::Config;
-use confertus::{Dot, DynamicBitVector, Leaf, Node};
+use confertus::{DynamicBitVector, Leaf, Node};
 
 use std::mem::size_of;
 
@@ -29,6 +29,8 @@ macro_rules! show_size {
 /// - [ ] Some kind of self-balancing binary tree (AVL / Red-Black / ...)
 /// - [ ] Range-Min-Max-Tree
 fn main() {
+    println!("{}", u32::MAX);
+    println!("{}", i32::MAX);
     show_size!(header);
     show_size!(usize);
     show_size!(isize);
@@ -79,7 +81,6 @@ fn main() {
                         match command[0] {
                             // "insert" => println!("inserting ..."),
                             "insert" => {
-                                commands::write_file(&config.file_out, &dbv.dotviz(0)).unwrap();
                                 dbv = commands::insert(dbv, command);
                             }
                             "delete" => {
