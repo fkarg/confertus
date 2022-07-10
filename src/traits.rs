@@ -65,8 +65,8 @@ pub trait DynBitTree {
     fn parent(self, v: usize);
 }
 
-
 /// Visualize Tree-based structures with [`graphviz`](https://graphviz.org/) using the `.dot` format.
 pub trait Dot {
+    /// Return `dot` representation for graph visualization. [Read more](https://graphviz.org/)
     fn dotviz(&self, self_id: isize) -> String;
 }

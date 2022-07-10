@@ -1,7 +1,7 @@
-use crate::traits::Dot;
-use crate::commands;
 pub use super::leaf::*;
 pub use super::node::*;
+use crate::commands;
+use crate::traits::Dot;
 use std::fmt;
 use std::ops::{Index, IndexMut};
 
@@ -36,6 +36,7 @@ impl fmt::Display for DynamicBitVector {
     }
 }
 
+/// Return [`Node`] for `usize` indexing
 impl Index<usize> for DynamicBitVector {
     type Output = Node;
 
@@ -50,33 +51,33 @@ impl IndexMut<usize> for DynamicBitVector {
     }
 }
 
+/// Return [`Leaf`] for `isize` indexing
 impl Index<isize> for DynamicBitVector {
     type Output = Leaf;
 
     fn index(&self, index: isize) -> &Self::Output {
-        let uidx: usize;
-        if index < 0 {
-            uidx = -index as usize;
+        let uidx = if index < 0 {
+            -index as usize
         } else {
-            uidx = index as usize;
-        }
+            index as usize
+        };
         &self.leafs[uidx]
     }
 }
 
 impl IndexMut<isize> for DynamicBitVector {
     fn index_mut(&mut self, index: isize) -> &mut Self::Output {
-        let uidx: usize;
-        if index < 0 {
-            uidx = -index as usize;
+        let uidx = if index < 0 {
+            -index as usize
         } else {
-            uidx = index as usize;
-        }
+            index as usize
+        };
         &mut self.leafs[uidx]
     }
 }
 
 impl DynamicBitVector {
+    /// Constructs new `DynamicBitVector` with empty root [`Node`].
     pub fn new() -> Self {
         DynamicBitVector {
             root: 0,
@@ -85,13 +86,13 @@ impl DynamicBitVector {
         }
     }
 
-    /// Return value at position `index`
+    /// Return value at position `index` of `DynamicBitVector`.
+    #[inline(always)]
     pub fn get(&self, index: usize) -> bool {
         self.get_node(self.root, index)
     }
 
-    /// Recursive function call
-    #[inline(always)]
+    /// Recursive descension to position `index`, based on `node`.
     fn get_node(&self, node: usize, index: usize) -> bool {
         if self[node].nums <= index {
             // enter right side
@@ -185,20 +186,14 @@ impl DynamicBitVector {
         self[node].rank -= 2;
     }
 
+    /// Append `bit` to the rightmost position in the rightmost [`Leaf`].
     #[inline]
     pub fn push(&mut self, bit: bool) {
         // let root = self.root;
         self.push_to(self.root, bit);
     }
 
-    fn propagate_size_rank_up(&mut self, node: usize) {
-        if let Some(p) = self[node].parent {
-            self.propagate_size_rank_up(p);
-        }
-        todo!();
-    }
-
-    /// Append `bit` to the rightmost position in the rightmost [`Leaf`].
+    /// Append `bit` to the rightmost position in the rightmost [`Leaf`], descending from `node`.
     ///
     /// Invariances:
     /// - `nums` has number of bits in left subtree
@@ -246,7 +241,7 @@ impl DynamicBitVector {
         }
     }
 
-    /// Given a [`Node`] `node` and its child [`Leaf`] `leaf`, append `bit` to the end.
+    /// Given a [`Node`] `node` and its right child [`Leaf`] `leaf`, attempt to append `bit` to `leaf`.
     ///
     /// # Cases:
     /// - OK: insertion was possible. No need to update anything
@@ -261,7 +256,7 @@ impl DynamicBitVector {
             Err(_) => {
                 // Capacity on right leaf full.
                 // check if left child exists
-                if let Some(_) = self[node].left {
+                if self[node].left.is_some() {
                     // Something exists on left side. So we need to insert a new node at the right
                     // side at the current position of `leaf`.
                     let new_node_id = self.insert_node_at_leaf(leaf);
@@ -292,7 +287,7 @@ impl DynamicBitVector {
     }
 
     /// retrace rank of parent until root (or cancel, or rebalance)
-    fn retrace(&mut self, node: usize, diff: i8) {
+    pub fn retrace(&mut self, node: usize, diff: i8) {
         if self[node].rank == 0 {
             return;
         }
@@ -313,49 +308,11 @@ impl DynamicBitVector {
         // else: found root, we're done
     }
 
-    /// retrace rank of parent until root (or cancel, or rebalance)
-    fn retrace_increase(&mut self, node: usize) {
-        // first, update balancing of node
-        self[node].rank += 1;
-        if self[node].rank == 0 {
-            // we cancelled out an earlier inbalance. stop.
-            return;
-        } else if self[node].rank == 2 {
-            // we can now rebalance, no need to continue tracing
-            self.rebalance(node, node);
-            return;
-        }
-        if let Some(p) = self[node].parent {
-            // propagate to parent
-            self.retrace_increase(p);
-        }
-        // else: found root, we're done
-    }
-
-    /// retrace rank of parent until root (or cancel, or rebalance)
-    fn retrace_decrease(&mut self, node: usize) {
-        // first, update balancing of node
-        self[node].rank -= 1;
-        if self[node].rank == 0 {
-            // we cancelled out an earlier inbalance. stop.
-            return;
-        } else if self[node].rank == -2 {
-            // we can now rebalance, no need to continue tracing
-            self.rebalance(node, node);
-            return;
-        }
-        if let Some(p) = self[node].parent {
-            // propagate to parent
-            self.retrace_decrease(p);
-        }
-        // else: found root, we're done
-    }
-
-    /// Rotate [`Node`]s `x` and `z` left.
+    /// Left rotation of [`Node`]s `x` and `z`.
     ///
     /// Assumes that `z` is right child of `x`, `x.rank == 2` and `z.rank == 1|0`.
     /// (0 only happens for deletion)
-    fn rotate_left(&mut self, z: usize, x: usize) {
+    pub fn rotate_left(&mut self, z: usize, x: usize) {
         let grand_parent = self[x].parent;
         self[z].parent = grand_parent;
 
@@ -370,14 +327,15 @@ impl DynamicBitVector {
         } else {
             self[grand_parent.unwrap()].replace_child_with(x as isize, z as isize);
         }
+
         // only possible in case of deletion
-        // if self[z].rank == 0 {
-        //    self[x].rank =  1;
-        //    self[z].rank = -1;
-        // } else {
-        self[z].rank = 0;
-        self[x].rank = 0;
-        // }
+        if self[z].rank == 0 {
+            self[x].rank = 1;
+            self[z].rank = -1;
+        } else {
+            self[z].rank = 0;
+            self[x].rank = 0;
+        }
 
         self[z].nums += self[x].nums;
         self[z].ones += self[x].ones;
@@ -393,14 +351,11 @@ impl DynamicBitVector {
         }
     }
 
-    /// Rotate [`Node`]s `x` and `z` right.
+    /// Right rotation of [`Node`]s `x` and `z`.
     ///
     /// Assumes that `z` is left child of `x`, `x.rank == 2` and `z.rank == 1|0`.
     /// (0 only happens for deletion)
-    fn rotate_right(&mut self, z: usize, x: usize) -> usize {
-        if x == self.root {
-            self.root = z;
-        }
+    pub fn rotate_right(&mut self, z: usize, x: usize) -> usize {
         let grand_parent = self[x].parent;
         self[z].parent = grand_parent;
 
@@ -409,14 +364,20 @@ impl DynamicBitVector {
         self[x].left = self[z].right;
         self[z].right = Some(x as isize);
 
+        if x == self.root {
+            // grand_parent == None
+            self.root = z;
+        } else {
+            self[grand_parent.unwrap()].replace_child_with(x as isize, z as isize);
+        }
         // only possible in case of deletion
-        // if self[z].rank == 0 {
-        //    self[x].rank =  1;
-        //    self[z].rank = -1;
-        // } else {
-        self[z].rank = 0;
-        self[x].rank = 0;
-        // }
+        if self[z].rank == 0 {
+            self[x].rank = 1; // ?
+            self[z].rank = -1; // ?
+        } else {
+            self[z].rank = 0;
+            self[x].rank = 0;
+        }
 
         self[z].nums += self[x].nums;
         self[z].ones += self[x].ones;
@@ -434,11 +395,12 @@ impl DynamicBitVector {
     }
 
     /// Rebalance tree to reestablish the rank difference invariance (valid values -1, 0, 1).
-    /// This is done via rotations. For insertions, at most two rotations are necessary, deletions
-    /// might necessitate up until `log(depth)` rotations to reestablish balance.
+    /// This is done via combinations of left and right rotations. For insertions, at most two
+    /// rotations are necessary, deletions might require up until `log(depth)` rotations to
+    /// reestablish balance.
     ///
     /// - `parent` is [`Node`] with temporary rank / balance factor violation
-    /// - `node` is [`Node`], higher child of `parent`
+    /// - `node` is higher child of `parent`
     pub fn rebalance(&mut self, node: usize, parent: usize) {
         println!(
             "rebalance ranks: parent.r {} node.r {}",
@@ -511,7 +473,6 @@ impl DynamicBitVector {
     }
 }
 
-
 impl Dot for DynamicBitVector {
     fn dotviz(&self, self_id: isize) -> String {
         format!(
@@ -522,8 +483,16 @@ impl Dot for DynamicBitVector {
             {} \n\
             }}\n\n",
             self.root,
-            self.nodes.iter().enumerate().map(|(e, x)| x.dotviz(e as isize)).collect::<String>(),
-            self.leafs.iter().enumerate().map(|(e, x)| x.dotviz(e as isize)).collect::<String>(),
-            )
+            self.nodes
+                .iter()
+                .enumerate()
+                .map(|(e, x)| x.dotviz(e as isize))
+                .collect::<String>(),
+            self.leafs
+                .iter()
+                .enumerate()
+                .map(|(e, x)| x.dotviz(e as isize))
+                .collect::<String>(),
+        )
     }
 }

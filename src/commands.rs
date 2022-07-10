@@ -1,9 +1,9 @@
 use super::avl_tree::AVL;
 use super::dynamic_vector::DynamicBitVector;
-use std::fs::{File, write};
+use std::fs::{write, File};
+use std::io::stdin;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
-use std::io::stdin;
 
 /// Read large files line by line in Rust
 /// Efficient (cache) implementations to read file line-by-line

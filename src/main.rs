@@ -6,7 +6,7 @@ use std::process;
 use confertus::avl_tree::AVL;
 use confertus::commands;
 use confertus::config::Config;
-use confertus::{DynamicBitVector, Leaf, Node, Dot};
+use confertus::{Dot, DynamicBitVector, Leaf, Node};
 
 use std::mem::size_of;
 

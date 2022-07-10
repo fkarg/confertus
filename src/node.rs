@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::traits::Dot;
+use std::fmt;
 
 /// Node element of [`super::DynamicBitVector`]. Contains references (indices) to parent `Node`,
 /// left and right subtrees, as well as `nums`, the number of used bits in the left subtree, `ones`
@@ -84,7 +84,7 @@ impl Dot for Node {
         let right = if let Some(r) = self.right {
             if r >= 0 {
                 format!("N{self_id} -> N{r} [label=<Right>,color=red];\n")
-                    // node
+                // node
             } else {
                 format!("N{self_id} -> L{} [label=<Right>,color=red];\n", -r)
             }
@@ -94,7 +94,7 @@ impl Dot for Node {
         let left = if let Some(l) = self.left {
             if l >= 0 {
                 format!("N{self_id} -> N{l} [label=<Left>,color=blue];\n")
-                    // node
+                // node
             } else {
                 format!("N{self_id} -> L{} [label=<Left>,color=blue];\n", -l)
             }
@@ -102,7 +102,10 @@ impl Dot for Node {
             "".to_string()
         };
 
-        let parent = format!("N{self_id} -> N{} [label=<Parent>,color=green];\n", self.parent.unwrap_or(self_id as usize));
+        let parent = format!(
+            "N{self_id} -> N{} [label=<Parent>,color=green];\n",
+            self.parent.unwrap_or(self_id as usize)
+        );
 
         format!(
             "N{self_id} [label=\"N{self_id}\\nnums={} ones={} rank={}\"];\n\
@@ -110,12 +113,7 @@ impl Dot for Node {
             {}\
             {}\
             ",
-            self.nums,
-            self.ones,
-            self.rank,
-            left,
-            right,
-            parent,
-            )
+            self.nums, self.ones, self.rank, left, right, parent,
+        )
     }
 }

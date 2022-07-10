@@ -1,11 +1,11 @@
-use std::fmt;
 use crate::traits;
+use std::fmt;
 
 /// Primitive type used as bit container in [`Leaf`]. Probably [`u64`] or [`u128`].
 pub type LeafValue = u64;
 
-/// Leaf element of [`crate::DynamicBitVector`]. Next to its value ([`u128`]) and bits used inside
-/// (`nums`), it contains a reference to its parent [`crate::Node`].
+/// Leaf element of [`crate::DynamicBitVector`]. Next to its value ([`LeafValue`]) and bits used
+/// inside (`nums`), it contains a reference to its parent [`crate::Node`].
 ///
 /// bit size: 17~25 bytes
 #[derive(PartialEq, Clone, Default)]
@@ -94,28 +94,35 @@ impl Leaf {
     }
 
     // TODO: update ones
+    /// Remove bit value at position `index`
+    ///
     /// # Panics
-    /// If index is larger than [`LeafValue::BITS`]
+    /// - If `index` is larger than [`LeafValue::BITS`]
+    /// - (If `index` > `self.nums`)
+    /// - If `self.nums` is 0
     pub fn delete(&mut self, index: usize) {
-        let lmask = LeafValue::MAX.rotate_left(LeafValue::BITS - 1 - index as u32);
+        let lmask = LeafValue::MAX.rotate_left(LeafValue::BITS - index as u32);
         let rmask = LeafValue::MAX.rotate_right(index as u32);
         self.value = (self.value & lmask) | ((self.value & rmask) << 1);
         self.nums -= 1;
     }
 
+    /// Returns number on-bits in `self.values`
     pub fn ones(&self) -> usize {
         self.value.count_ones() as usize
     }
 
     pub fn rank(&self, bit: bool, index: usize) -> usize {
-        // TODO: without including `bit` for ones
-        (self.value & LeafValue::MAX.rotate_left(LeafValue::BITS - index as u32)).count_ones()
-            as usize;
-        todo!();
+        if bit {
+            self.value.rotate_right(index as u32).count_ones() as usize
+        } else {
+            (!self.value).rotate_right(index as u32).count_ones() as usize
+        }
+        // todo!(".rank {:?}", self);
     }
 
     pub fn select(&self, bit: bool, index: usize) -> usize {
-        todo!()
+        todo!(".select {:?}", self);
     }
 
     pub fn nums(&self) -> usize {
@@ -129,7 +136,10 @@ impl Leaf {
 
 impl traits::Dot for Leaf {
     fn dotviz(&self, self_id: isize) -> String {
-        format!("L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n", self.value, self.nums)
+        format!(
+            "L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n",
+            self.value, self.nums
+        )
         // format!("L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n\
         //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
     }
