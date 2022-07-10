@@ -11,6 +11,12 @@ Cargo.lock
 
 
 # Added by cargo
-
 /target
+
+# for directory with example input files
 input
+
+# all intermediary `graphviz` formats
+*.txt
+*.dot
+*.png
