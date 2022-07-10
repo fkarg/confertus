@@ -1,8 +1,9 @@
 use super::avl_tree::AVL;
 use super::dynamic_vector::DynamicBitVector;
-use std::fs::File;
-use std::io::{self, BufRead};
+use std::fs::{File, write};
+use std::io::{self, BufRead, Write};
 use std::path::Path;
+use std::io::stdin;
 
 /// Read large files line by line in Rust
 /// Efficient (cache) implementations to read file line-by-line
@@ -50,4 +51,17 @@ pub fn select(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector
     let index = command[2].parse::<usize>().unwrap();
     vec.select(bit, index);
     vec
+}
+
+pub fn write_file<P>(filename: P, text: &str) -> std::io::Result<()>
+where
+    P: AsRef<Path>,
+{
+    write(filename, text)?;
+    Ok(())
+}
+
+pub fn wait_continue() {
+    let mut input_string = String::new();
+    stdin().read_line(&mut input_string).ok().unwrap();
 }

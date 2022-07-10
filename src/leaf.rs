@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::traits;
 
 /// Primitive type used as bit container in [`Leaf`]. Probably [`u64`] or [`u128`].
 pub type LeafValue = u64;
@@ -123,5 +124,13 @@ impl Leaf {
 
     fn balance(&self) -> i8 {
         1
+    }
+}
+
+impl traits::Dot for Leaf {
+    fn dotviz(&self, self_id: isize) -> String {
+        format!("L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n", self.value, self.nums)
+        // format!("L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n\
+        //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
     }
 }

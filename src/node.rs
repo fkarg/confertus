@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::traits::Dot;
 
 /// Node element of [`super::DynamicBitVector`]. Contains references (indices) to parent `Node`,
 /// left and right subtrees, as well as `nums`, the number of used bits in the left subtree, `ones`
@@ -53,17 +54,21 @@ impl Node {
         }
     }
 
+    fn rank(self) -> i8 {
+        self.rank
+    }
+
     /// Used when inserting a Node in place of a [`super::Leaf`] or rotating to keep rank
     pub fn replace_child_with(&mut self, child: isize, new_child: isize) {
         if let Some(l) = self.left {
             if l == child {
-                self.left = Some(l);
+                self.left = Some(new_child);
                 return;
             }
         }
         if let Some(r) = self.right {
             if r == child {
-                self.right = Some(r);
+                self.right = Some(new_child);
                 return;
             }
         }
@@ -72,8 +77,45 @@ impl Node {
             child, self.parent
         );
     }
+}
 
-    fn rank(self) -> i8 {
-        self.rank
+impl Dot for Node {
+    fn dotviz(&self, self_id: isize) -> String {
+        let right = if let Some(r) = self.right {
+            if r >= 0 {
+                format!("N{self_id} -> N{r} [label=<Right>,color=red];\n")
+                    // node
+            } else {
+                format!("N{self_id} -> L{} [label=<Right>,color=red];\n", -r)
+            }
+        } else {
+            "".to_string()
+        };
+        let left = if let Some(l) = self.left {
+            if l >= 0 {
+                format!("N{self_id} -> N{l} [label=<Left>,color=blue];\n")
+                    // node
+            } else {
+                format!("N{self_id} -> L{} [label=<Left>,color=blue];\n", -l)
+            }
+        } else {
+            "".to_string()
+        };
+
+        let parent = format!("N{self_id} -> N{} [label=<Parent>,color=green];\n", self.parent.unwrap_or(self_id as usize));
+
+        format!(
+            "N{self_id} [label=\"N{self_id}\\nnums={} ones={} rank={}\"];\n\
+            {}\
+            {}\
+            {}\
+            ",
+            self.nums,
+            self.ones,
+            self.rank,
+            left,
+            right,
+            parent,
+            )
     }
 }

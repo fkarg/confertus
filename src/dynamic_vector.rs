@@ -1,4 +1,5 @@
-// use super::traits;
+use crate::traits::Dot;
+use crate::commands;
 pub use super::leaf::*;
 pub use super::node::*;
 use std::fmt;
@@ -234,6 +235,9 @@ impl DynamicBitVector {
             // add +1 to rank for creating leaf on right side
             self[node].rank += 1;
 
+            commands::write_file("tmp.txt", &self.dotviz(0)).unwrap();
+            commands::wait_continue();
+
             // update `rank` up to the root
             self.retrace(node, 1);
 
@@ -352,9 +356,6 @@ impl DynamicBitVector {
     /// Assumes that `z` is right child of `x`, `x.rank == 2` and `z.rank == 1|0`.
     /// (0 only happens for deletion)
     fn rotate_left(&mut self, z: usize, x: usize) {
-        if x == self.root {
-            self.root = z;
-        }
         let grand_parent = self[x].parent;
         self[z].parent = grand_parent;
 
@@ -363,6 +364,12 @@ impl DynamicBitVector {
         self[x].right = self[z].left;
         self[z].left = Some(x as isize);
 
+        if x == self.root {
+            // grand_parent == None
+            self.root = z;
+        } else {
+            self[grand_parent.unwrap()].replace_child_with(x as isize, z as isize);
+        }
         // only possible in case of deletion
         // if self[z].rank == 0 {
         //    self[x].rank =  1;
@@ -472,7 +479,7 @@ impl DynamicBitVector {
     }
 
     pub fn insert(&mut self, index: usize, bit: bool) {
-        todo!(".insert {}", self)
+        todo!(".insert {}", self.dotviz(0))
     }
 
     pub fn delete(&mut self, index: usize) {
@@ -501,5 +508,22 @@ impl DynamicBitVector {
 
     pub fn capacity(self) -> usize {
         self[self.root].size
+    }
+}
+
+
+impl Dot for DynamicBitVector {
+    fn dotviz(&self, self_id: isize) -> String {
+        format!(
+            "\n\ndigraph tree {{ \
+            BV [label=<DynamicBitVector>];\n\
+            BV -> N{} [label=<root>];\n\
+            {} \n\
+            {} \n\
+            }}\n\n",
+            self.root,
+            self.nodes.iter().enumerate().map(|(e, x)| x.dotviz(e as isize)).collect::<String>(),
+            self.leafs.iter().enumerate().map(|(e, x)| x.dotviz(e as isize)).collect::<String>(),
+            )
     }
 }

@@ -6,7 +6,7 @@ use std::process;
 use confertus::avl_tree::AVL;
 use confertus::commands;
 use confertus::config::Config;
-use confertus::{DynamicBitVector, Leaf, Node};
+use confertus::{DynamicBitVector, Leaf, Node, Dot};
 
 use std::mem::size_of;
 
@@ -80,6 +80,7 @@ fn main() {
                             match command[0] {
                                 // "insert" => println!("inserting ..."),
                                 "insert" => {
+                                    commands::write_file(&config.file_out, &dbv.dotviz(0)).unwrap();
                                     dbv = commands::insert(dbv, command);
                                 }
                                 "delete" => {
