@@ -248,13 +248,68 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
-</pre><pre class="rust"><code><span class="doccomment">/// Dynamic Bit Vector implementation with AVL-Tree</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+</pre><pre class="rust"><code><span class="doccomment">/// AVL-Tree for Dynamic Bit Vector implementation</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AVL</span> {
-    <span class="doccomment">/// Leaf containing value-bitvector and `nums`, number of used bits</span>
-    <span class="ident">Leaf</span>(<span class="ident">u64</span>, <span class="ident">usize</span>),
-    <span class="doccomment">/// left, right, ones, num</span>
+    <span class="doccomment">/// Leaf</span>
+    <span class="doccomment">/// 0: bitvector containing values</span>
+    <span class="doccomment">/// 1: `nums`, number of used bits</span>
+    <span class="doccomment">/// 2: `parent` reference of Leaf</span>
+    <span class="ident">Leaf</span>(<span class="ident">u64</span>, <span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AVL</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// Node which might contain a right and left subtree, and counts on left-sided `nums` and</span>
+    <span class="doccomment">/// `ones`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `nums` counts the number used bits on the left side, required for indexing.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `ones` counts the number of one-bits in the left side, used for efficient `rank` and</span>
+    <span class="doccomment">/// `select` queries.</span>
     <span class="ident">Node</span> {
+        <span class="doccomment">/// reference to parent Node</span>
+        <span class="ident">parent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AVL</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="doccomment">/// left side Node</span>
         <span class="ident">left</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AVL</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="doccomment">/// right side Node</span>
@@ -268,12 +323,13 @@
     },
 }
 
-<span class="doccomment">/// Various support functions for [`AVL`]</span>
+<span class="doccomment">/// Various support functions and functionality for [`AVL`]</span>
 <span class="kw">impl</span> <span class="ident">AVL</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_capacity</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">AVL::create</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
-    }
+    <span class="comment">// /// Create new empty AVL-Tree root and subtrees for total available capacity `capacity`.</span>
+    <span class="comment">// #[inline]</span>
+    <span class="comment">// pub fn new_with_capacity(capacity: usize) -&gt; Self {</span>
+    <span class="comment">//     AVL::create(None, None, 0, 0, 0)</span>
+    <span class="comment">// }</span>
 
     <span class="doccomment">/// Create new empty AVL-Tree root</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -284,21 +340,18 @@
     <span class="doccomment">/// Create new empty AVL-Tree Leaf</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">AVL::Leaf</span>(<span class="number">0_u64</span>, <span class="number">0</span>)
+        <span class="ident">AVL::Leaf</span>(<span class="number">0_u64</span>, <span class="number">0</span>, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Create AVL-Tree singleton with value `bit`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if [`FromPrimitive`] cast to [`u64`] returns [`None`]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">singleton</span>(<span class="ident">bit</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">AVL::Leaf</span>(<span class="ident">bit</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">1</span>)
+        <span class="ident">AVL::Leaf</span>(<span class="ident">bit</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">1</span>, <span class="prelude-val">None</span>)
     }
 
+    <span class="doccomment">/// shorthand function for creating an [`AVL::Node`]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">create</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(
         <span class="ident">left</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AVL</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">right</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AVL</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">ones</span>: <span class="ident">usize</span>,
@@ -311,6 +364,7 @@
             <span class="ident">ones</span>,
             <span class="ident">nums</span>,
             <span class="ident">size</span>,
+            <span class="ident">parent</span>: <span class="prelude-val">None</span>,
         }
     }
 
@@ -330,45 +384,73 @@
     <span class="comment">//     todo!()</span>
     <span class="comment">// }</span>
 
+    <span class="doccomment">/// Returns number of bits used in left subtree or current [`AVL::Leaf`]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nums</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nums</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AVL::Leaf</span>(<span class="kw">_</span>, <span class="ident">n</span>) =&gt; <span class="ident">n</span>,
+            <span class="ident">AVL::Leaf</span>(<span class="kw">_</span>, <span class="ident">n</span>, <span class="kw">_</span>) =&gt; <span class="ident">n</span>,
             <span class="ident">AVL::Node</span> { <span class="ident">nums</span>, .. } =&gt; <span class="ident">nums</span>,
         }
     }
 
+    <span class="doccomment">/// Returns number of 1-bits in left subtree or current [`AVL::Leaf`]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ones</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ones</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AVL::Leaf</span>(<span class="ident">v</span>, <span class="kw">_</span>) =&gt; <span class="ident">v</span>.<span class="ident">count_ones</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">AVL::Leaf</span>(<span class="ident">v</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident">v</span>.<span class="ident">count_ones</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
             <span class="ident">AVL::Node</span> { <span class="ident">ones</span>, .. } =&gt; <span class="ident">ones</span>,
         }
     }
 
+    <span class="doccomment">/// Return currently available capacity across all subtrees</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">AVL::Leaf</span>(<span class="kw">_</span>, <span class="ident">s</span>, <span class="kw">_</span>) =&gt; <span class="number">64</span> <span class="op">-</span> <span class="ident">s</span>,
+            <span class="ident">AVL::Node</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } =&gt; {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sum</span> <span class="op">=</span> <span class="number">0</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">left</span> {
+                    <span class="ident">sum</span> <span class="op">+</span><span class="op">=</span> <span class="ident">l</span>.<span class="ident">capacity</span>();
+                }
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="ident">right</span> {
+                    <span class="ident">sum</span> <span class="op">+</span><span class="op">=</span> <span class="ident">r</span>.<span class="ident">capacity</span>();
+                }
+                <span class="ident">sum</span>
+            }
+        }
+    }
+
+    <span class="doccomment">/// Length of total bits currently held</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">nums</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">AVL::Leaf</span>(<span class="kw">_</span>, <span class="ident">s</span>, <span class="kw">_</span>) =&gt; <span class="ident">s</span>,
+            <span class="ident">AVL::Node</span> { <span class="ident">size</span>, .. } =&gt; <span class="ident">size</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>
     }
 
     <span class="kw">fn</span> <span class="ident">rank</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
-        <span class="number">0</span>
+        <span class="macro">todo!</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">select</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u64</span> {
-        <span class="number">0</span>
+        <span class="macro">todo!</span>()
     }
 
     <span class="doccomment">/// Inserts bit `val` at the current last position.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AVL::Leaf</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; {
+            <span class="ident">AVL::Leaf</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">parent</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">s</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">63</span> {
                     <span class="comment">// u64::BITS.try_into().unwrap()</span>
+
                     <span class="comment">// split apart</span>
                     <span class="macro">todo!</span>(<span class="string">&quot;split leaf apart in two&quot;</span>)
                 } <span class="kw">else</span> {
-                    <span class="kw-2">*</span><span class="ident">v</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">v</span> <span class="op">|</span> (<span class="ident">val</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">s</span>;
+                    <span class="kw-2">*</span><span class="ident">v</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">val</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">s</span>;
                     <span class="kw-2">*</span><span class="ident">s</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
             }
@@ -400,7 +482,7 @@
     <span class="doccomment">/// This panics if `index` is out of bounds (including `self.len()`).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">val</span>: <span class="ident">bool</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AVL::Leaf</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">v</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">s</span>) =&gt; {
+            <span class="ident">AVL::Leaf</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">values</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">num</span>, <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">parent</span>) =&gt; {
                 <span class="comment">// check for size of current leaf</span>
                 <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">64</span> {
                     <span class="comment">// u64::BITS.try_into().unwrap()</span>
@@ -409,18 +491,18 @@
                     <span class="comment">// things will usually continue to be added to the right? so maybe put 75% to</span>
                     <span class="comment">// the left?</span>
                     <span class="macro">todo!</span>(<span class="string">&quot;split leaf apart in two&quot;</span>)
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">s</span> <span class="op">==</span> <span class="ident">index</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">num</span> <span class="op">==</span> <span class="ident">index</span> {
                     <span class="comment">// insert at last position</span>
-                    <span class="kw-2">*</span><span class="ident">s</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="kw-2">*</span><span class="ident">v</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">v</span> <span class="op">|</span> (<span class="ident">val</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">index</span>;
+                    <span class="kw-2">*</span><span class="ident">num</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="kw-2">*</span><span class="ident">values</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">val</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">index</span>;
                     <span class="comment">// TODO: can potentially be removed for just &#39;in the middle&#39; code eventually</span>
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">s</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">index</span> {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">num</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">index</span> {
                     <span class="comment">// insert somewhere in the middle.</span>
                     <span class="kw">let</span> <span class="ident">lmask</span> <span class="op">=</span> <span class="ident">u64::MAX</span>.<span class="ident">rotate_left</span>((<span class="number">64</span> <span class="op">-</span> <span class="ident">index</span>).<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
                     <span class="kw">let</span> <span class="ident">rmask</span> <span class="op">=</span> <span class="ident">u64::MAX</span>.<span class="ident">rotate_right</span>(<span class="ident">index</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
-                    <span class="kw-2">*</span><span class="ident">v</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">v</span> <span class="op">&amp;</span> <span class="ident">lmask</span>) <span class="op">|</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">index</span>) <span class="op">|</span> ((<span class="kw-2">*</span><span class="ident">v</span> <span class="op">&amp;</span> <span class="ident">rmask</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>);
+                    <span class="kw-2">*</span><span class="ident">values</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">values</span> <span class="op">&amp;</span> <span class="ident">lmask</span>) <span class="op">|</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">index</span>) <span class="op">|</span> ((<span class="kw-2">*</span><span class="ident">values</span> <span class="op">&amp;</span> <span class="ident">rmask</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>);
                     <span class="comment">// prints pointer to v instead of v ... but dereferencing not easy</span>
-                    <span class="macro">println!</span>(<span class="string">&quot;s: {s}, v: {}, index: {index}&quot;</span>, <span class="ident">v</span>);
+                    <span class="macro">println!</span>(<span class="string">&quot;nums: {num}, values: {}, index: {index}&quot;</span>, <span class="ident">values</span>);
                     <span class="comment">// todo!(&quot;insert elements in the middle&quot;)</span>
                 } <span class="kw">else</span> {
                     <span class="comment">// index to insert is further than current size of bitvector</span>
@@ -464,6 +546,12 @@
                 }
             }
         }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">AVL</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::new</span>()
     }
 }
 

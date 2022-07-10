@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Config","Configuration for command line arguments."]]});

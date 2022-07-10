@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["AVL","Dynamic Bit Vector implementation with AVL-Tree"]]});
+initSidebarItems({"enum":[["AVL","AVL-Tree for Dynamic Bit Vector implementation"]]});

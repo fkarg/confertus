@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["DynBitTree",""],["DynBitVec",""],["StaticBitVec",""]]});
+initSidebarItems({"trait":[["Dot","Visualize Tree-based structures with `graphviz` using the `.dot` format."],["DynBitTree",""],["DynBitVec",""],["StaticBitVec",""]]});

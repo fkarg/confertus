@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["insert",""],["read_lines","Read large files line by line in Rust Efficient (cache) implementations to read file line-by-line https://stackoverflow.com/questions/45882329/read-large-files-line-by-line-in-rust"]]});
+initSidebarItems({"fn":[["delete",""],["flip",""],["insert",""],["rank",""],["read_lines","Read large files line by line in Rust Efficient (cache) implementations to read file line-by-line https://stackoverflow.com/questions/45882329/read-large-files-line-by-line-in-rust"],["select",""],["wait_continue",""],["write_file",""]]});
