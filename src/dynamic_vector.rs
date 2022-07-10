@@ -347,45 +347,82 @@ impl DynamicBitVector {
         // else: found root, we're done
     }
 
-    /// Rotate `parent` and `node` left.
+    /// Rotate [`Node`]s `x` and `z` left.
     ///
-    /// Assumes that `node` is right child of `parent`, `parent.rank == 2` and `node.rank == 1|0`.
+    /// Assumes that `z` is right child of `x`, `x.rank == 2` and `z.rank == 1|0`.
     /// (0 only happens for deletion)
-    ///
-    /// For Wikipedia, `parent` is X and `node` is Z.
-    fn rotate_left(&mut self, node: usize, parent: usize) -> usize {
-        if parent == self.root {
-            self.root = node;
+    fn rotate_left(&mut self, z: usize, x: usize) {
+        if x == self.root {
+            self.root = z;
         }
-        let grand_parent = self[parent].parent;
-        self[node].parent = grand_parent;
+        let grand_parent = self[x].parent;
+        self[z].parent = grand_parent;
 
-        self[parent].parent = Some(node);
+        self[x].parent = Some(z);
 
-        self[parent].right = self[node].left;
-        self[node].left = Some(parent as isize);
+        self[x].right = self[z].left;
+        self[z].left = Some(x as isize);
 
-        self[node].rank = 0;
-        self[parent].rank = 0;
+        // only possible in case of deletion
+        // if self[z].rank == 0 {
+        //    self[x].rank =  1;
+        //    self[z].rank = -1;
+        // } else {
+        self[z].rank = 0;
+        self[x].rank = 0;
+        // }
 
-        self[node].nums += self[parent].nums;
-        self[node].ones += self[parent].ones;
+        self[z].nums += self[x].nums;
+        self[z].ones += self[x].ones;
 
-        if let Some(r) = self[parent].right {
-            if r >= 0 {
-                // node
-                self[r as usize].parent = Some(parent);
-            } else {
-                // leaf
-                self[r].parent = parent;
-            }
+        // move right subtree of X
+        let r = self[x].right.unwrap();
+        if r >= 0 {
+            // node
+            self[r as usize].parent = Some(x);
+        } else {
+            // leaf
+            self[r].parent = x;
         }
-
-        parent
     }
 
-    /// left becomes parent (?)
-    fn rotate_right(&mut self, node: usize, parent: usize) -> usize {
+    /// Rotate [`Node`]s `x` and `z` right.
+    ///
+    /// Assumes that `z` is left child of `x`, `x.rank == 2` and `z.rank == 1|0`.
+    /// (0 only happens for deletion)
+    fn rotate_right(&mut self, z: usize, x: usize) -> usize {
+        if x == self.root {
+            self.root = z;
+        }
+        let grand_parent = self[x].parent;
+        self[z].parent = grand_parent;
+
+        self[x].parent = Some(z);
+
+        self[x].left = self[z].right;
+        self[z].right = Some(x as isize);
+
+        // only possible in case of deletion
+        // if self[z].rank == 0 {
+        //    self[x].rank =  1;
+        //    self[z].rank = -1;
+        // } else {
+        self[z].rank = 0;
+        self[x].rank = 0;
+        // }
+
+        self[z].nums += self[x].nums;
+        self[z].ones += self[x].ones;
+
+        // move left subtree of X
+        let r = self[x].left.unwrap();
+        if r >= 0 {
+            // node
+            self[r as usize].parent = Some(x);
+        } else {
+            // leaf
+            self[r].parent = x;
+        }
         todo!(".rotate_right {}", self)
     }
 
@@ -411,8 +448,9 @@ impl DynamicBitVector {
                     self.rotate_left(node, parent);
                 } else {
                     println!(" Right Left violation");
-                    // self.rotate_right()
-                    self.rotate_left(node, parent);
+                    let y = self[node].left.unwrap() as usize;
+                    self.rotate_right(y, node);
+                    self.rotate_left(y, parent);
                 }
             }
         }
@@ -424,8 +462,9 @@ impl DynamicBitVector {
                     self.rotate_right(node, parent);
                 } else {
                     println!(" Left Right violation");
-                    // self.rotate_left()
-                    self.rotate_right(node, parent);
+                    let y = self[node].right.unwrap() as usize;
+                    self.rotate_left(y, node);
+                    self.rotate_right(y, parent);
                 }
             }
         }
