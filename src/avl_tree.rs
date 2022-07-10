@@ -1,5 +1,5 @@
 /// AVL-Tree for Dynamic Bit Vector implementation
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum AVL {
     /// Leaf
     /// 0: bitvector containing values
@@ -134,12 +134,16 @@ impl AVL {
         }
     }
 
+    pub fn is_empty(self) -> bool {
+        self.len() == 0
+    }
+
     fn rank(self, index: usize) -> u64 {
-        0
+        todo!()
     }
 
     fn select(self, index: usize) -> u64 {
-        0
+        todo!()
     }
 
     /// Inserts bit `val` at the current last position.
@@ -152,7 +156,7 @@ impl AVL {
                     // split apart
                     todo!("split leaf apart in two")
                 } else {
-                    *v = *v | (val as u64) << *s;
+                    *v |= (val as u64) << *s;
                     *s += 1;
                 }
             }
@@ -196,7 +200,7 @@ impl AVL {
                 } else if *num == index {
                     // insert at last position
                     *num += 1;
-                    *values = *values | (val as u64) << index;
+                    *values |= (val as u64) << index;
                     // TODO: can potentially be removed for just 'in the middle' code eventually
                 } else if *num >= index {
                     // insert somewhere in the middle.
@@ -248,6 +252,12 @@ impl AVL {
                 }
             }
         }
+    }
+}
+
+impl Default for AVL {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

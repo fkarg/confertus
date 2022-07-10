@@ -72,31 +72,29 @@ fn main() {
                             _ => panic!("unexpected value"),
                         }
                         idx -= 1;
-                    } else {
-                        if let Ok(comm) = line {
-                            let command: Vec<&str> = comm.split(' ').collect();
-                            println!("{:?}", command);
-                            // execute vector commands
-                            match command[0] {
-                                // "insert" => println!("inserting ..."),
-                                "insert" => {
-                                    commands::write_file(&config.file_out, &dbv.dotviz(0)).unwrap();
-                                    dbv = commands::insert(dbv, command);
-                                }
-                                "delete" => {
-                                    dbv = commands::delete(dbv, command);
-                                }
-                                "flip" => {
-                                    dbv = commands::flip(dbv, command);
-                                }
-                                "rank" => {
-                                    dbv = commands::rank(dbv, command);
-                                }
-                                "select" => {
-                                    dbv = commands::select(dbv, command);
-                                }
-                                _ => panic!("unrecognized command in file"),
+                    } else if let Ok(comm) = line {
+                        let command: Vec<&str> = comm.split(' ').collect();
+                        println!("{:?}", command);
+                        // execute vector commands
+                        match command[0] {
+                            // "insert" => println!("inserting ..."),
+                            "insert" => {
+                                commands::write_file(&config.file_out, &dbv.dotviz(0)).unwrap();
+                                dbv = commands::insert(dbv, command);
                             }
+                            "delete" => {
+                                dbv = commands::delete(dbv, command);
+                            }
+                            "flip" => {
+                                dbv = commands::flip(dbv, command);
+                            }
+                            "rank" => {
+                                dbv = commands::rank(dbv, command);
+                            }
+                            "select" => {
+                                dbv = commands::select(dbv, command);
+                            }
+                            _ => panic!("unrecognized command in file"),
                         }
                     }
                 }
@@ -105,18 +103,16 @@ fn main() {
     } else {
         // algo == bp
         if let Ok(lines) = commands::read_lines(config.file_in) {
-            for line in lines {
-                if let Ok(comm) = line {
-                    // execute tree commands
-                    let command: Vec<&str> = comm.split(' ').collect();
-                    match command[0] {
-                        "deletenode" => println!("deleting ... {:?}", command),
-                        "insertchild" => println!("inserting ... {:?}", command),
-                        "child" => println!("child ... {:?}", command),
-                        "subtree" => println!("subtree ... {:?}", command),
-                        "parent" => println!("parent ... {:?}", command),
-                        _ => panic!("unrecognized command in file"),
-                    }
+            for line in lines.flatten() {
+                // execute tree commands
+                let command: Vec<&str> = line.split(' ').collect();
+                match command[0] {
+                    "deletenode" => println!("deleting ... {:?}", command),
+                    "insertchild" => println!("inserting ... {:?}", command),
+                    "child" => println!("child ... {:?}", command),
+                    "subtree" => println!("subtree ... {:?}", command),
+                    "parent" => println!("parent ... {:?}", command),
+                    _ => panic!("unrecognized command in file"),
                 }
             }
         }
