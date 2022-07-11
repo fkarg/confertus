@@ -3,7 +3,7 @@ pub use super::node::*;
 use crate::commands;
 use crate::traits::Dot;
 use std::fmt;
-use std::ops::{Index, IndexMut};
+use std::ops::{Add, Index, IndexMut};
 
 type Child = bool;
 
@@ -93,7 +93,6 @@ impl DynamicBitVector {
     #[inline]
     pub fn get(&mut self, index: usize) -> bool {
         self.apply(Self::get_leaf, index)
-        // self.get_node(self.root, index)
     }
 
     /// Recursive descension to position `index`, based on `node`.
@@ -167,7 +166,8 @@ impl DynamicBitVector {
     }
 
     /// Descend tree to position `index` and apply function `f` with `f(self, leaf, index, bit) ->
-    /// T`.
+    /// T`. Function `g` with `g(self, node) -> T` is used to modify the return value of `f`
+    /// dependent on `node`. Its value is added to the result of recursion.
     ///
     /// Used to implement traversal for [`DynamicBitVector::insert`], [`DynamicBitVector::rank`],
     /// [`DynamicBitVector::select`]
@@ -177,9 +177,13 @@ impl DynamicBitVector {
     pub fn apply_bitop<T>(
         &mut self,
         mut f: impl FnMut(&mut DynamicBitVector, isize, usize, bool) -> T,
+        // g: impl Fn(&DynamicBitVector, usize) -> T,
         index: usize,
         bit: bool,
-    ) -> T {
+    ) -> T
+    where
+        T: Add<T>,
+    {
         self.apply_bitop_node(self.root, f, index, bit)
     }
 
@@ -187,9 +191,13 @@ impl DynamicBitVector {
         &mut self,
         node: usize,
         mut f: impl FnMut(&mut DynamicBitVector, isize, usize, bool) -> T,
+        // g: impl Fn(&DynamicBitVector, usize) -> T,
         index: usize,
         bit: bool,
-    ) -> T {
+    ) -> T
+    where
+        T: Add<T>,
+    {
         // index 128 is at right side when `nums == 128`, include right side/equal sign
         if self[node].nums <= index {
             // enter right side
@@ -540,6 +548,10 @@ impl DynamicBitVector {
         println!("");
     }
 
+    fn nop(&self) -> usize {
+        0
+    }
+
     /// recursively update parent values in case of modification of `nums` or `ones`
     pub fn update_left_values(&mut self, node: usize, child: isize) {
         // check if child is left child
@@ -559,16 +571,17 @@ impl DynamicBitVector {
     /// Insert `bit` at position `index`
     #[inline]
     pub fn insert(&mut self, index: usize, bit: bool) {
-        self.apply_bitop(Self::insert_leaf, index, bit)
+        self.apply_bitop(Self::insert_leaf, index, bit);
     }
 
-    fn insert_leaf(&mut self, leaf: isize, index: usize, bit: bool) {
+    fn insert_leaf(&mut self, leaf: isize, index: usize, bit: bool) -> usize {
         self.viz_stop();
         // TODO before:
         // - check for leaf full, split, traverse, rebalance, insert if true.
         self[leaf].insert(index, bit).ok().unwrap();
         // TODO after:
         // - update parent `nums` and `ones` if left child
+        0
     }
 
     fn insert_node(&mut self, node: usize, index: usize, bit: bool) {
@@ -613,7 +626,7 @@ impl DynamicBitVector {
     /// Return number of `bit`-values before position `index`
     #[inline]
     pub fn rank(&mut self, index: usize, bit: bool) -> usize {
-        self.apply_bitop(Self::rank_leaf, index, bit)
+        todo!()
     }
 
     #[inline]
@@ -630,16 +643,15 @@ impl DynamicBitVector {
     #[inline]
     pub fn select(&mut self, n: usize, bit: bool) -> usize {
         self.select_node(self.root, n, bit)
-        // self.apply_bitop(Self::select_leaf, index, bit)
     }
 
     #[inline]
-    fn select_leaf(&mut self, leaf: isize, index: usize, bit: bool) -> usize {
-        self[leaf].select(bit, index)
+    fn select_leaf(&mut self, leaf: isize, n: usize, bit: bool) -> usize {
+        self[leaf].select(bit, n)
     }
 
     fn select_node(&mut self, node: usize, index: usize, bit: bool) -> usize {
-        self.apply_bitop_node(node, Self::select_leaf, index, bit)
+        todo!()
     }
 
     /// capacity used in left subtree

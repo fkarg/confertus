@@ -1,4 +1,6 @@
 use crate::traits;
+use core::arch::x86_64::_pdep_u64;
+use std;
 use std::fmt;
 
 /// Primitive type used as bit container in [`Leaf`]. Sensible options are [`u64`] and [`u128`].
@@ -157,12 +159,56 @@ impl Leaf {
         } else {
             (!self.value).rotate_right(index as u32).count_ones() as usize
         }
-        // todo!(".rank {:?}", self);
+    }
+
+    /// ```text
+    /// Algorithm for determining the position of the jth 1 in a machine word.
+    /// ---
+    /// 1: function PTSELECT(x, j)
+    /// 2:     i ← SHIFTLEFT(1, j)
+    /// 3:     p ← PDEP(i, x)
+    /// 4:     return TZCNT(p)
+    /// ```
+    ///
+    /// taken from <https://arxiv.org/pdf/1706.00990.pdf>
+    pub unsafe fn select_pdep(&self, bit: bool, n: usize) -> usize {
+        let array = if bit { self.value } else { !self.value };
+        // self.value is u64
+        _pdep_u64(1 << n, array as u64) as usize
+
+        // // self.value is u128
+        // if n < 64 {
+        //     _pdep_u64(1 << n, array as u64) as usize
+        // } else {
+        //     _pdep_u64(1 << n, (array >> 64) as u64) as usize
+        // }
+
+        // yes, comment / uncomment ... no conditional compilation possible
     }
 
     /// Return index of `n`-th `bit`-value in `self.value`
     pub fn select(&self, bit: bool, n: usize) -> usize {
-        todo!(".select {:?}", self);
+        if std::is_x86_feature_detected!("bmi2") {
+            unsafe { self.select_pdep(bit, n) }
+        } else {
+            // fallback for non-bmi2-x86 architectures
+
+            // Scan the leaf from left to right and look for the bit of
+            // respective rank.
+            let mut pos = 0;
+            let mut i = n;
+            for shift in (0..LeafValue::BITS).rev() {
+                if (((self.value >> shift) & 1) != 0) == bit {
+                    if i == 0 {
+                        return pos;
+                    }
+                    i -= 1;
+                    pos += 1;
+                }
+            }
+            panic!("`n`-th `bit`-value not found in this Leaf.")
+        }
+        // todo!(".select {:?}", self);
     }
 
     /// Flip bit at position `index`
