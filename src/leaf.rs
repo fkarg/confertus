@@ -42,6 +42,7 @@ impl fmt::Debug for Leaf {
 
 impl Leaf {
     /// Constructs a new, empty `Leaf` with parent `parent`.
+    #[inline]
     pub fn new(parent: usize) -> Self {
         Leaf {
             parent,
@@ -54,6 +55,7 @@ impl Leaf {
     ///
     /// # Panics
     /// If `index` > [`LeafValue::BITS`]
+    #[inline]
     pub fn access(&self, index: usize) -> bool {
         (self.value >> index) & 1 == 1
     }
@@ -78,6 +80,7 @@ impl Leaf {
     /// # Safety
     /// Unchecked invariant: used capacity `nums` is less than the total capacity of
     /// `LeafValue::BITS` bits before push.
+    #[inline]
     pub unsafe fn push_unchecked(&mut self, bit: bool) {
         self.value |= (bit as LeafValue) << self.nums;
         self.nums += 1;
@@ -86,7 +89,7 @@ impl Leaf {
     /// Insert `bit` at position `index` in [`Leaf`].
     ///
     /// # Errors
-    /// If used capacity `nums` equals `LeafValue::BITS` bits before insert (Leaf is full).
+    /// When Leaf full or `index` out of bounds (`> self.nums` or `>= LeafValue::Bits`).
     pub fn insert(&mut self, index: usize, bit: bool) -> Result<(), &str> {
         if self.nums as u32 >= LeafValue::BITS {
             Err("No free capacity left")
@@ -99,8 +102,9 @@ impl Leaf {
     /// Unchecked version of [`Leaf::insert`]
     ///
     /// # Safety
-    /// Unchecked invariant: used capacity `nums` is less than the total capacity of
-    /// `LeafValue::BITS` bits before insert.
+    /// Unchecked invariants:
+    /// - `index < LeafValue::BITS`
+    /// - `index <= self.nums`
     pub unsafe fn insert_unchecked(&mut self, index: usize, bit: bool) {
         let lmask = LeafValue::MAX.rotate_left(LeafValue::BITS - index as u32); // in- or excluding index here?
         let rmask = LeafValue::MAX.rotate_right(index as u32);
@@ -111,11 +115,24 @@ impl Leaf {
 
     /// Remove bit value at position `index`
     ///
+    /// # Errors
+    /// When Leaf empty or `index` out of bounds (`> self.nums` or `> LeafValue::BITS`).
+    pub fn delete(&mut self, index: usize) -> Result<(), &str> {
+        if self.is_empty() {
+            Err("Tried to delete in empty leaf")
+        } else {
+            unsafe { self.delete_unchecked(index) };
+            Ok(())
+        }
+    }
+
+    /// Unchecked version of [`Leaf::delete`]
+    ///
     /// # Safety
     /// List of unchecked invariants:
-    /// - `index > LeafValue::BITS`
-    /// - `index > self.nums`
-    /// - `self.nums == 0`
+    /// - `index < LeafValue::BITS`
+    /// - `index < self.nums`
+    /// - `self.nums > 0`
     pub unsafe fn delete_unchecked(&mut self, index: usize) {
         let lmask = LeafValue::MAX.rotate_left(LeafValue::BITS - index as u32);
         let rmask = LeafValue::MAX.rotate_right(index as u32);
@@ -124,11 +141,16 @@ impl Leaf {
     }
 
     /// Returns number on-bits in `self.values`
+    ///
+    /// runtime complexity: O(1)
+    #[inline]
     pub fn ones(&self) -> usize {
         self.value.count_ones() as usize
     }
 
-    /// Returns number of `bit`-values up until `index` in `self.value`
+    /// Returns number of `bit`-values up to `index` in `self.value`
+    ///
+    /// runtime complexity: O(1)
     pub fn rank(&self, bit: bool, index: usize) -> usize {
         if bit {
             self.value.rotate_right(index as u32).count_ones() as usize
@@ -138,29 +160,33 @@ impl Leaf {
         // todo!(".rank {:?}", self);
     }
 
-    /// Return index of `n`-th `bit` in `self.value`
+    /// Return index of `n`-th `bit`-value in `self.value`
     pub fn select(&self, bit: bool, n: usize) -> usize {
         todo!(".select {:?}", self);
     }
 
     /// Flip bit at position `index`
+    ///
+    /// runtime complexity: O(1)
+    #[inline]
     pub fn flip(&mut self, index: usize) {
         self.value ^= 1 << index;
     }
 
     /// Return used capacity `self.nums`
-    #[inline(always)]
+    #[inline]
     pub fn nums(&self) -> usize {
         self.nums.into()
     }
 
     /// Return used length of `self.value` (== `self.nums`)
-    #[inline(always)]
+    #[inline]
     pub fn len(&self) -> usize {
         self.nums.into()
     }
 
     /// If the Leaf has active values
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.nums == 0
     }

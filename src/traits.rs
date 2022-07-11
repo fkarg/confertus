@@ -80,4 +80,8 @@ pub trait BitSize {
     {
         std::mem::size_of::<Self>()
     }
+
+    /// Return total number of bits used by objects managed by structures. Includes all elements on
+    /// different areas of heap.
+    fn bitsize_full(&self) -> usize;
 }
