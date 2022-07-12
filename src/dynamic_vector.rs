@@ -55,6 +55,10 @@ impl IndexMut<usize> for DynamicBitVector {
 }
 
 /// Return [`Leaf`] for `isize` indexing
+///
+/// When creating a new container with [`DynamicBitVector::new`], a [`Leaf`] on position 0 (which
+/// cannot be accessed) is created, as all attempted (later) indexing to values >= are converted to
+/// `usize` first and return a [`Node`] instead.
 impl Index<isize> for DynamicBitVector {
     type Output = Leaf;
 
@@ -125,7 +129,7 @@ impl DynamicBitVector {
     /// Descend tree to position `index` and apply function `f` with `f(self, leaf, index) -> T`.
     ///
     /// Used to implement traversal for [`DynamicBitVector::get`], [`DynamicBitVector::flip`],
-    /// [`DynamicBitVector::delete`]
+    /// [`DynamicBitVector::delete`], [`DynamicBitVector::insert`]
     ///
     /// # Panics
     /// If tree invariances are violated
@@ -166,44 +170,44 @@ impl DynamicBitVector {
     }
 
     /// Descend tree to position `index` and apply function `f` with `f(self, leaf, index, bit) ->
-    /// T`. Function `g` with `g(self, node) -> T` is used to modify the return value of `f`
+    /// T`. Function `g` with `g(self, node, left_descent) -> T` is used to modify the return value of `f`
     /// dependent on `node`. Its value is added to the result of recursion.
     ///
-    /// Used to implement traversal for [`DynamicBitVector::insert`], [`DynamicBitVector::rank`],
-    /// [`DynamicBitVector::select`]
+    /// Used to implement traversal for [`DynamicBitVector::rank`], [`DynamicBitVector::select`]
     ///
     /// # Panics
     /// If tree invariances are violated
     pub fn apply_bitop<T>(
         &mut self,
         mut f: impl FnMut(&mut DynamicBitVector, isize, usize, bool) -> T,
-        // g: impl Fn(&DynamicBitVector, usize) -> T,
+        g: impl Fn(&DynamicBitVector, usize, bool) -> T,
         index: usize,
         bit: bool,
     ) -> T
     where
-        T: Add<T>,
+        T: Add<Output = T>,
     {
-        self.apply_bitop_node(self.root, f, index, bit)
+        self.apply_bitop_node(self.root, f, g, index, bit)
     }
 
     fn apply_bitop_node<T>(
         &mut self,
         node: usize,
         mut f: impl FnMut(&mut DynamicBitVector, isize, usize, bool) -> T,
-        // g: impl Fn(&DynamicBitVector, usize) -> T,
+        g: impl Fn(&DynamicBitVector, usize, bool) -> T,
         index: usize,
         bit: bool,
     ) -> T
     where
-        T: Add<T>,
+        T: Add<Output = T>,
     {
         // index 128 is at right side when `nums == 128`, include right side/equal sign
         if self[node].nums <= index {
             // enter right side
             let right_id = self[node].right.unwrap();
             if right_id >= 0 {
-                self.apply_bitop_node(right_id as usize, f, index - self[node].nums, bit)
+                g(self, node, false)
+                    + self.apply_bitop_node(right_id as usize, f, g, index - self[node].nums, bit)
             } else {
                 // leaf
                 f(self, right_id, index, bit)
@@ -212,7 +216,7 @@ impl DynamicBitVector {
             // enter left side
             let left_id = self[node].left.unwrap();
             if left_id >= 0 {
-                self.apply_bitop_node(left_id as usize, f, index, bit)
+                g(self, node, true) + self.apply_bitop_node(left_id as usize, f, g, index, bit)
             } else {
                 // leaf
                 f(self, left_id, index, bit)
@@ -548,10 +552,6 @@ impl DynamicBitVector {
         println!("");
     }
 
-    fn nop(&self) -> usize {
-        0
-    }
-
     /// recursively update parent values in case of modification of `nums` or `ones`
     pub fn update_left_values(&mut self, node: usize, child: isize) {
         // check if child is left child
@@ -571,17 +571,30 @@ impl DynamicBitVector {
     /// Insert `bit` at position `index`
     #[inline]
     pub fn insert(&mut self, index: usize, bit: bool) {
-        self.apply_bitop(Self::insert_leaf, index, bit);
+        if bit {
+            self.apply(Self::insert_leaf1, index);
+        } else {
+            self.apply(Self::insert_leaf0, index);
+        }
     }
 
-    fn insert_leaf(&mut self, leaf: isize, index: usize, bit: bool) -> usize {
+    #[inline]
+    fn insert_leaf0(&mut self, leaf: isize, index: usize) {
+        self.insert_leaf(leaf, index, false);
+    }
+
+    #[inline]
+    fn insert_leaf1(&mut self, leaf: isize, index: usize) {
+        self.insert_leaf(leaf, index, true);
+    }
+
+    fn insert_leaf(&mut self, leaf: isize, index: usize, bit: bool) {
         self.viz_stop();
         // TODO before:
         // - check for leaf full, split, traverse, rebalance, insert if true.
         self[leaf].insert(index, bit).ok().unwrap();
         // TODO after:
         // - update parent `nums` and `ones` if left child
-        0
     }
 
     fn insert_node(&mut self, node: usize, index: usize, bit: bool) {
@@ -626,7 +639,7 @@ impl DynamicBitVector {
     /// Return number of `bit`-values before position `index`
     #[inline]
     pub fn rank(&mut self, index: usize, bit: bool) -> usize {
-        todo!()
+        self.apply_bitop(Self::rank_leaf, Self::rank_add, index, bit)
     }
 
     #[inline]
@@ -636,13 +649,25 @@ impl DynamicBitVector {
 
     #[inline]
     fn rank_node(&mut self, node: usize, index: usize, bit: bool) -> usize {
-        self.apply_bitop_node(node, Self::rank_leaf, index, bit)
+        self.apply_bitop_node(node, Self::rank_leaf, Self::rank_add, index, bit)
+    }
+
+    fn rank_add(&self, node: usize, left_descent: bool) -> usize {
+        if left_descent {
+            0
+        } else {
+            self[node].ones
+        }
     }
 
     /// Return position of `n`-th `bit`-value
     #[inline]
     pub fn select(&mut self, n: usize, bit: bool) -> usize {
-        self.select_node(self.root, n, bit)
+        if bit {
+            self.select1_node(self.root, n)
+        } else {
+            self.select0_node(self.root, n)
+        }
     }
 
     #[inline]
@@ -650,8 +675,49 @@ impl DynamicBitVector {
         self[leaf].select(bit, n)
     }
 
-    fn select_node(&mut self, node: usize, index: usize, bit: bool) -> usize {
-        todo!()
+    fn select0_node(&mut self, node: usize, n: usize) -> usize {
+        if self[node].nums - self[node].ones <= n {
+            // descend right side
+            let right_id = self[node].right.unwrap();
+            if right_id >= 0 {
+                self[node].nums + self.select0_node(right_id as usize, n - self[node].nums)
+            } else {
+                // leaf
+                self[node].nums + self.select_leaf(right_id, n, false)
+            }
+        } else {
+            // descend left side
+            let left_id = self[node].left.unwrap();
+            if left_id >= 0 {
+                self.select0_node(left_id as usize, n)
+            } else {
+                // leaf
+                self.select_leaf(left_id, n, false)
+            }
+        }
+    }
+
+
+    fn select1_node(&mut self, node: usize, n: usize) -> usize {
+        if self[node].ones <= n {
+            // descend right side
+            let right_id = self[node].right.unwrap();
+            if right_id > 0 {
+                self[node].nums + self.select1_node(right_id as usize, n - self[node].nums)
+            } else {
+                // leaf
+                self[node].nums + self.select_leaf(right_id, n, true)
+            }
+        } else {
+            // descend left side
+            let left_id = self[node].left.unwrap();
+            if left_id >= 0 {
+                self.select1_node(left_id as usize, n)
+            } else {
+                // leaf
+                self.select_leaf(left_id, n, true)
+            }
+        }
     }
 
     /// capacity used in left subtree

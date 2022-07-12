@@ -1,10 +1,13 @@
 use crate::traits;
-use core::arch::x86_64::_pdep_u64;
+use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
 use std;
 use std::fmt;
 
 /// Primitive type used as bit container in [`Leaf`]. Sensible options are [`u64`] and [`u128`].
 /// (also `u256`, should it get implemented eventually)
+///
+/// Implementation of [`Leaf::select_pdep`] is dependent on actual type, as the `pdep` command does
+/// not automatically extend to `u128`.
 pub type LeafValue = u64;
 
 /// Leaf element of [`crate::DynamicBitVector`]. Next to its value ([`LeafValue`]) and bits used
@@ -161,6 +164,11 @@ impl Leaf {
         }
     }
 
+    /// Only available for `x86_64`-based architecuters supporting feature sets `bmi1` and `bmi2`,
+    /// which were both introduced by the fourth-generation intel
+    /// [haswell](https://en.wikipedia.org/wiki/Haswell_(microarchitecture)) architecture nine
+    /// years ago.
+    ///
     /// ```text
     /// Algorithm for determining the position of the jth 1 in a machine word.
     /// ---
@@ -170,25 +178,28 @@ impl Leaf {
     /// 4:     return TZCNT(p)
     /// ```
     ///
-    /// taken from <https://arxiv.org/pdf/1706.00990.pdf>
+    /// taken from <https://arxiv.org/pdf/1706.00990.pdf>.
     pub unsafe fn select_pdep(&self, bit: bool, n: usize) -> usize {
         let array = if bit { self.value } else { !self.value };
         // self.value is u64
-        _pdep_u64(1 << n, array as u64) as usize
+        _tzcnt_u64(_pdep_u64(1 << n, array as u64)) as usize
 
         // // self.value is u128
         // if n < 64 {
-        //     _pdep_u64(1 << n, array as u64) as usize
+        //     _tzcnt_u64(_pdep_u64(1 << n, array as u64)) as usize
         // } else {
-        //     _pdep_u64(1 << n, (array >> 64) as u64) as usize
+        //     _tzcnt_u64(_pdep_u64(1 << n, (array >> 64) as u64)) as usize + 64
         // }
 
         // yes, comment / uncomment ... no conditional compilation possible
     }
 
     /// Return index of `n`-th `bit`-value in `self.value`
+    ///
+    /// Automatically uses [`Leaf::select_pdep`] if supported by architecture, but has fallback
+    /// implementation if not.
     pub fn select(&self, bit: bool, n: usize) -> usize {
-        if std::is_x86_feature_detected!("bmi2") {
+        if std::is_x86_feature_detected!("bmi2") && std::is_x86_feature_detected!("bmi1") {
             unsafe { self.select_pdep(bit, n) }
         } else {
             // fallback for non-bmi2-x86 architectures
