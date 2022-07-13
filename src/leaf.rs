@@ -1,6 +1,5 @@
 use crate::traits;
 use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
-use std;
 use std::fmt;
 
 /// Primitive type used as bit container in [`Leaf`]. Sensible options are [`u64`] and [`u128`].
@@ -53,6 +52,16 @@ impl Leaf {
             parent,
             value: 0,
             nums: 0,
+        }
+    }
+
+    /// Cunstructs a new `Leaf` with parent `parent` and
+    #[inline]
+    pub fn create(parent: usize, value: u64, nums: u8) -> Self {
+        Leaf {
+            parent,
+            value,
+            nums,
         }
     }
 
@@ -111,8 +120,8 @@ impl Leaf {
     /// - `index < LeafValue::BITS`
     /// - `index <= self.nums`
     pub unsafe fn insert_unchecked(&mut self, index: usize, bit: bool) {
-        let lmask = LeafValue::MAX.rotate_left(LeafValue::BITS - index as u32); // in- or excluding index here?
-        let rmask = LeafValue::MAX.rotate_right(index as u32);
+        let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32); // in- or excluding index here?
+        let rmask = LeafValue::MAX >> (index as u32);
         self.value =
             (self.value & lmask) | ((bit as LeafValue) << index) | ((self.value & rmask) >> 1);
         self.nums += 1;
@@ -139,8 +148,8 @@ impl Leaf {
     /// - `index < self.nums`
     /// - `self.nums > 0`
     pub unsafe fn delete_unchecked(&mut self, index: usize) {
-        let lmask = LeafValue::MAX.rotate_left(LeafValue::BITS - index as u32);
-        let rmask = LeafValue::MAX.rotate_right(index as u32);
+        let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32);
+        let rmask = LeafValue::MAX >> index as u32;
         self.value = (self.value & lmask) | ((self.value & rmask) << 1);
         self.nums -= 1;
     }
@@ -164,11 +173,6 @@ impl Leaf {
         }
     }
 
-    /// Only available for `x86_64`-based architecuters supporting feature sets `bmi1` and `bmi2`,
-    /// which were both introduced by the fourth-generation intel
-    /// [haswell](https://en.wikipedia.org/wiki/Haswell_(microarchitecture)) architecture nine
-    /// years ago.
-    ///
     /// ```text
     /// Algorithm for determining the position of the jth 1 in a machine word.
     /// ---
@@ -179,6 +183,14 @@ impl Leaf {
     /// ```
     ///
     /// taken from <https://arxiv.org/pdf/1706.00990.pdf>.
+    ///
+    /// # Safety
+    /// Only available for `x86_64`-based architecuters supporting feature sets `bmi1` and `bmi2`,
+    /// which were both introduced by the fourth-generation intel
+    /// [haswell](https://en.wikipedia.org/wiki/Haswell_(microarchitecture)) architecture nine
+    /// years ago.
+    // #[target_feature(enable = "bmi1")]
+    // #[target_feature(enable = "bmi2")]
     pub unsafe fn select_pdep(&self, bit: bool, n: usize) -> usize {
         let array = if bit { self.value } else { !self.value };
         // self.value is u64
@@ -246,6 +258,14 @@ impl Leaf {
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.nums == 0
+    }
+
+    /// Return half of `Leaf`-value. Useful for fully inserting in newly created leaf right after.
+    pub fn split(&mut self) -> u64 {
+        let ret = self.value.rotate_right(LeafValue::BITS / 2) << (LeafValue::BITS / 2);
+        self.value >>= LeafValue::BITS / 2;
+        self.nums -= (LeafValue::BITS / 2) as u8;
+        ret >> (LeafValue::BITS / 2)
     }
 }
 
