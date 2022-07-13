@@ -35,4 +35,12 @@ impl traits::StaticBitVec for SBitVec {
     fn access(self, i: usize) -> bool {
         self[i]
     }
+
+    fn rank(&self, bit: bool, i: usize) -> usize {
+        todo!()
+    }
+
+    fn select(&self, bit: bool, i: usize) -> usize {
+        todo!()
+    }
 }

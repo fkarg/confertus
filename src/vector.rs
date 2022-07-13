@@ -1,5 +1,3 @@
-use super::traits;
-
 pub struct V(Vec<bool>);
 
 // impl traits::StaticBitVec for V {

@@ -335,20 +335,7 @@ impl DynamicBitVector {
             }
         } else {
             // no right-side child. create leaf and insert as right child
-            let new_leaf_id = -(self.leafs.len() as isize);
-            self.leafs.push(Leaf::new(node));
-            println!(
-                "Create Leaf {} on right side of {:#?}",
-                new_leaf_id, self[node]
-            );
-            // insert newly created leaf to right side
-            self[node].right = Some(new_leaf_id);
-
-            // add +1 to rank for creating leaf on right side
-            self[node].rank += 1;
-
-            // update `rank` up to the root
-            self.retrace(node, 1);
+            let new_leaf = self.create_right_leaf(node);
 
             // now, we can push into the right side leaf we just created
             self.push_node(node, bit);
@@ -623,30 +610,29 @@ impl DynamicBitVector {
 
     /// Split content of `leaf` in two, and replace location with new Node. Afterward, apply
     /// [`DynamicBitVector::retrace`]. Returns id of newly created [`Node`]. Potentially
-    /// rebalances.
+    /// rebalances when tracing ranks.
     pub fn split_leaf(&mut self, leaf: isize) -> usize {
         // creating new node and making current leaf left child
         let new_node = self.insert_node_at_leaf(leaf);
         // moving half of leaf to newly created leaf.
         let values = self[leaf].split();
-        let leaf_new = Leaf::create(new_node, values, (LeafValue::BITS / 2) as u8);
-        let new_leaf_id: isize = -(self.leafs.len() as isize);
-        self.leafs.push(leaf_new);
+        let leaf_id = self.create_right_leaf(new_node);
+        self[leaf_id].value = values;
+        self[leaf_id].nums = (LeafValue::BITS / 2) as u8;
+
         // making leaf right child of new Node
-        self[new_node].right = Some(new_leaf_id);
-        self[new_node].rank = 0;
-        self.retrace(new_node, 1);
         new_node
     }
 
     /// Insert `bit` at position `index`
     #[inline]
     pub fn insert(&mut self, index: usize, bit: bool) {
-        if bit {
-            self.apply(Self::insert_leaf1, index);
-        } else {
-            self.apply(Self::insert_leaf0, index);
-        }
+        self.insert_node(self.root, index, bit);
+        // if bit {
+        //     self.apply(Self::insert_leaf1, index);
+        // } else {
+        //     self.apply(Self::insert_leaf0, index);
+        // }
     }
 
     #[inline]
@@ -683,12 +669,18 @@ impl DynamicBitVector {
         // update `nums` and `ones` values during descent
         if self[node].nums <= index {
             // enter right side
-            let right_id = self[node].right.unwrap();
-            if right_id >= 0 {
-                self.insert_node(right_id as usize, index - self[node].nums, bit)
+            if let Some(right_id) = self[node].right {
+                if right_id >= 0 {
+                    self.insert_node(right_id as usize, index - self[node].nums, bit)
+                } else {
+                    // leaf
+                    self.insert_leaf(right_id, index - self[node].nums, bit)
+                }
             } else {
-                // leaf
-                self.insert_leaf(right_id, index - self[node].nums, bit)
+                // create right side leaf and insert
+                let leaf_id = self.create_right_leaf(node);
+                // even retracing won't disturb order
+                self.insert_leaf(leaf_id, index - self[node].nums, bit);
             }
         } else {
             // enter left side
@@ -704,7 +696,26 @@ impl DynamicBitVector {
                 self.insert_leaf(left_id, index, bit)
             }
         }
-        self.viz_stop();
+    }
+
+    /// Create [`Leaf`] as right child of `node`, returns id of newly created Leaf.
+    pub fn create_right_leaf(&mut self, node: usize) -> isize {
+        // get id for new leaf
+        let leaf_id = -(self.leafs.len() as isize);
+
+        // create and push new Leaf with `node` as parent
+        self.leafs.push(Leaf::new(node));
+
+        // insert newly created leaf to right side
+        self[node].right = Some(leaf_id);
+
+        // add +1 to rank for creating leaf on right side
+        self[node].rank += 1;
+
+        // update `rank` up to the root
+        self.retrace(node, 1);
+
+        leaf_id
     }
 
     /// Delete bit at position `index`
@@ -722,9 +733,8 @@ impl DynamicBitVector {
         self[leaf].delete(index).ok().unwrap();
         // check for leaf empty, merge, traverse, rebalance if true
         if self[leaf].nums as u32 <= LeafValue::BITS / 4 {
-            // TODO: leaf now empty. Merge or Remove
+            self.merge_away(leaf);
         }
-        // update parent `nums` and `ones` if left child
         leaf
     }
 
@@ -732,6 +742,108 @@ impl DynamicBitVector {
         // TODO: update `nums` and `ones` during descent
         self.viz_stop();
         todo!(".delete_node {}", self);
+    }
+
+    /// Return closest immediately sequential neighbor to given [`Leaf`] `leaf`, should it exist.
+    pub fn closest_neighbor_leaf(&self, leaf: isize) -> Option<isize> {
+        // first, check other child of immediate parent
+        let parent = self[leaf].parent;
+        if let Some(l) = self[parent].left {
+            if l != leaf {
+                // child is on right side of parent
+                return Some(l);
+            }
+        }
+        if let Some(r) = self[parent].right {
+            if r != leaf {
+                // child is on left side of parent
+                return Some(r);
+            }
+        }
+
+        // ascend to parent, try again
+        self.closest_neighbor_child(parent)
+    }
+
+    /// Try to return a Leaf that is the closest neighbor (left or right) to the given Node
+    /// `child` by ascending, and descending the respectively 'other' side of `child`. Fails if no
+    /// such neighbor exists.
+    pub fn closest_neighbor_child(&self, child: usize) -> Option<isize> {
+        if let Some(p) = self[child].parent {
+            if let Some(l) = self[p].left {
+                if l != (child as isize) {
+                    // child is on right side of parent
+                    return self.descend_rightmost(p);
+                }
+            }
+            if let Some(r) = self[p].right {
+                if r != (child as isize) {
+                    // child is on left side of parent
+                    return self.descend_leftmost(p);
+                }
+            }
+            // ascend to parent, try again
+            return self.closest_neighbor_child(p);
+        }
+        // does not exist.
+        None
+    }
+
+    /// Try to return the leftmost Leaf to be found by descending from `node`
+    fn descend_leftmost(&self, node: usize) -> Option<isize> {
+        if let Some(l) = self[node].left {
+            if l >= 0 {
+                return self.descend_leftmost(node as usize);
+            } else {
+                return Some(l);
+            }
+        }
+        if let Some(r) = self[node].right {
+            if r >= 0 {
+                return self.descend_leftmost(node as usize);
+            } else {
+                return Some(r);
+            }
+        }
+        panic!(".descend_leftmost: Node does not have children")
+    }
+
+    /// Try to return the rightmost Leaf to be found by descending from `node`
+    fn descend_rightmost(&self, node: usize) -> Option<isize> {
+        if let Some(r) = self[node].right {
+            if r >= 0 {
+                return self.descend_rightmost(node as usize);
+            } else {
+                return Some(r);
+            }
+        }
+        if let Some(l) = self[node].left {
+            if l >= 0 {
+                return self.descend_rightmost(node as usize);
+            } else {
+                return Some(l);
+            }
+        }
+        panic!(".descend_rightmost: Node does not have children")
+    }
+
+    /// Try to find neighboring Leaf and merge into, or steal values if neighbor is too full.
+    ///
+    /// Assumption: `leaf` has a used size of `<= 3/4 LeafValue::BITS`.
+    ///
+    /// Merge, when found neighbor has `1/4 LeafValue::BITS` to spare. Otherwise, steal.
+    pub fn merge_away(&mut self, leaf: isize) {
+        // first, find neighboring child.
+        if let Some(neighbor) = self.closest_neighbor_leaf(leaf) {
+            // neighbor is leaf.
+            self.merge_leafs(leaf, neighbor);
+            // TODO: update parent `nums` and `ones` if left child
+        }
+        // no neighbor exists. Cannot merge, but that's ok too
+    }
+
+    fn merge_leafs(&mut self, leaf1: isize, leaf2: isize) {
+        todo!(".merge_leafs {}", self)
     }
 
     /// Flip bit at position `index`

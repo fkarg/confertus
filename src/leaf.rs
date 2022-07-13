@@ -2,11 +2,14 @@ use crate::traits;
 use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
 use std::fmt;
 
-/// Primitive type used as bit container in [`Leaf`]. Sensible options are [`u64`] and [`u128`].
-/// (also `u256`, should it get implemented eventually)
+/// Container type used to contain bits in [`Leaf`]. Sensible options are [`u64`] and [`u128`].
+/// Might be replaced with custom implementation featuring higher bit container size later (e.g.
+/// 4096, or dynamically dependent on total BitVector capacity).
+///
 ///
 /// Implementation of [`Leaf::select_pdep`] is dependent on actual type, as the `pdep` command does
-/// not automatically extend to `u128`.
+/// not automatically extend to `u128`. I researched conditional compilation for a bit, but
+/// couldn't figure out how to do that.
 pub type LeafValue = u64;
 
 /// Leaf element of [`crate::DynamicBitVector`]. Next to its value ([`LeafValue`]) and bits used
@@ -57,7 +60,7 @@ impl Leaf {
 
     /// Cunstructs a new `Leaf` with parent `parent` and
     #[inline]
-    pub fn create(parent: usize, value: u64, nums: u8) -> Self {
+    pub fn create(parent: usize, value: LeafValue, nums: u8) -> Self {
         Leaf {
             parent,
             value,
@@ -261,7 +264,7 @@ impl Leaf {
     }
 
     /// Return half of `Leaf`-value. Useful for fully inserting in newly created leaf right after.
-    pub fn split(&mut self) -> u64 {
+    pub fn split(&mut self) -> LeafValue {
         let ret = self.value.rotate_right(LeafValue::BITS / 2) << (LeafValue::BITS / 2);
         self.value >>= LeafValue::BITS / 2;
         self.nums -= (LeafValue::BITS / 2) as u8;

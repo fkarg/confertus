@@ -9,14 +9,10 @@ pub trait StaticBitVec {
 
     /// `rank [0|1] i` return rank0 or rank1 up to position i
     /// Maschinenbefehl: popcount (?)
-    fn rank(&self, bit: bool, i: usize) -> usize {
-        todo!()
-    }
+    fn rank(&self, bit: bool, i: usize) -> usize;
 
     /// `select [0|1] i` return select0 or select1 for the i-th occurrence
-    fn select(&self, bit: bool, i: usize) -> usize {
-        todo!()
-    }
+    fn select(&self, bit: bool, i: usize) -> usize;
 }
 
 pub trait DynBitVec<T: StaticBitVec> {

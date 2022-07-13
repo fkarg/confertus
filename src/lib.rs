@@ -8,9 +8,11 @@
 pub mod commands;
 
 /// Static bit vector implementation: `SBitVec` used as Leaf for dynamic bit vectors `DynBitV`
+/// (incomplete)
 pub mod static_vector;
 
 /// Dynamic Bit vector implementation for `Vec`: `V`
+/// (incomplete)
 pub mod vector;
 
 /// Contains traits for `StaticBitVec`, `DynBitVec` and `DynBitTree`
@@ -20,6 +22,7 @@ pub mod traits;
 pub mod utils;
 
 /// First implementation approach using AVL trees
+/// (incomplete)
 pub mod avl_tree;
 
 /// Actual implementation of dynamic bit vector with AVL Tree
