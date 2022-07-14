@@ -1,4 +1,6 @@
-use super::avl_tree::AVL;
+#![allow(unused_mut)]
+#![allow(unused_imports)]
+
 use super::dynamic_vector::DynamicBitVector;
 use std::fs::{write, File};
 use std::io::stdin;

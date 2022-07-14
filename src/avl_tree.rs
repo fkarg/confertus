@@ -1,3 +1,8 @@
+#![allow(dead_code)]
+#![allow(unused_mut)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 /// AVL-Tree for Dynamic Bit Vector implementation
 #[derive(Debug, PartialEq, Clone)]
 pub enum AVL {
