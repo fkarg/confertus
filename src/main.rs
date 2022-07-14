@@ -30,7 +30,7 @@ use std::time::{Duration, Instant};
 /// - [ ] Extending LeafValue container
 /// - [ ] BP with Range-Min-Max-Tree
 fn main() -> Result<(), std::io::Error> {
-    // time measured and duration is on millisecond level.
+    // time measured and duration with nanosecond precision
     let mut time_total: Duration = Duration::from_millis(0);
     let mut last_timestamp_cont: Instant = Instant::now();
     let mut dbv = DynamicBitVector::new();
@@ -67,8 +67,8 @@ fn main() -> Result<(), std::io::Error> {
             if let Some(Ok(first)) = lines.next() {
                 println!("{:?}", first);
                 let mut idx = first.parse::<usize>().unwrap();
-                let mut rank = 0;
-                let mut sel = 0;
+                let mut rank;
+                let mut sel;
                 println!("{:?}", idx);
                 for line in lines {
                     if idx > 0 {

@@ -33,27 +33,27 @@ pub struct Leaf {
     pub nums: u8, // realistically below u128::BITS, so u8::MAX = 255 is sufficient. // 1 byte
 }
 
-/// Debug formatting is of format `Leaf[P: <{self.parent}>, nums {self.nums}, value {self.value in
-/// binary representation}]`
-impl fmt::Debug for Leaf {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if LeafValue::BITS == 64 {
-            write!(
-                f,
-                "Leaf[P: <{:3}>, nums {:2}, value {:#066b}]",
-                self.parent, self.nums, self.value
-            )
-        } else {
-            write!(
-                f,
-                "Leaf[P: <{:3}>, nums {:3}, value {:#0130b}]",
-                self.parent, self.nums, self.value
-            )
-        }
-    }
-}
 
 impl Leaf {
+    // ACCESS
+
+    /// Access bit value at position `index`
+    ///
+    /// # Panics
+    /// If `index` > [`LeafValue::BITS`]
+    #[inline]
+    pub fn access(&self, index: usize) -> bool {
+        (self.value >> index) & 1 == 1
+    }
+
+    /// Return full internal bit container
+    #[inline]
+    pub fn values(&self) -> LeafValue {
+        self.value
+    }
+    // }
+
+    // impl Leaf {
     // CONSTRUCTORS
 
     /// Constructs a new, empty `Leaf` with parent `parent`.
@@ -74,22 +74,6 @@ impl Leaf {
             value,
             nums,
         }
-    }
-
-    // ACCESS
-
-    /// Access bit value at position `index`
-    ///
-    /// # Panics
-    /// If `index` > [`LeafValue::BITS`]
-    #[inline]
-    pub fn access(&self, index: usize) -> bool {
-        (self.value >> index) & 1 == 1
-    }
-
-    /// Return full internal bit container
-    pub fn values(&self) -> LeafValue {
-        self.value
     }
 
     // PUSH
@@ -360,22 +344,7 @@ impl Leaf {
     }
 }
 
-impl Dot for Leaf {
-    fn dotviz(&self, self_id: isize) -> String {
-        format!(
-            "L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n",
-            self.value, self.nums
-        )
-        // format!("L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n\
-        //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
-    }
-}
+mod trait_impls;
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn exploration() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+mod tests;

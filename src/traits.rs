@@ -1,24 +1,30 @@
-/// Container trait for static bit vector functionality
+use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
+
+/// Functions associated with static bit vectors. Not to be confused with specific containers such
+/// as [`u64`], [`u128`] or particulary [`Leaf`](crate::Leaf), which additionally tracks the number
+/// of used bits, `nums`, and a parent [`Node`](crate::Node).
 pub trait StaticBitVec {
     type Intern;
-    // /// Constructor
-    // fn new() -> Self;
 
     /// Return number of on-bits in Container
     fn ones(&self) -> usize;
 
-    /// `access i` return bit value at position i
+    /// Access bit value at position `index`
     fn access(&self, index: usize) -> bool;
 
-    /// `rank [0|1] i` return rank0 or rank1 up to position `index`
+    /// Returns number of `bit`-values up to `index` in `self.value`
+    ///
+    /// runtime complexity: O(1) to O(w)
     fn rank(&self, bit: bool, index: usize) -> usize;
 
-    /// `select [0|1] n` return select0 or select1 for the i-th occurrence
+    /// Return index of `n`-th `bit`-value in `self.value`
     fn select(&self, bit: bool, n: usize) -> usize;
 
-    // fn values(&self) -> T;
+    /// Return full internal container
+    fn values(&self) -> Self::Intern;
 }
 
+/// Functions associated with dynamic bit vectors.
 pub trait DynBitVec<T: StaticBitVec> {
     /// `insert i [0|1]` insert a 0 or 1 at the i-th position of the bit vector
     /// concurrently updates all relevant `ones` and `num` values when traversing to location `i`,

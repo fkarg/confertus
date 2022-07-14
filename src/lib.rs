@@ -7,7 +7,7 @@
 /// Module for parsing and building cli commands and args
 pub mod commands;
 
-/// Contains traits for `StaticBitVec`, `DynBitVec` and `DynBitTree`
+/// Trait definitions, particularly for [`StaticBitVec`] and [`DynBitVec`].
 pub mod traits;
 
 /// Module providing commonly used utility functions
@@ -18,6 +18,8 @@ pub mod dynamic_vector;
 
 /// Configuration for command line arguments
 pub mod config;
+
+mod primitive_static;
 
 // /// Static bit vector implementation: `SBitVec` used as Leaf for dynamic bit vectors `DynBitV`
 // /// (incomplete)
