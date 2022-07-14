@@ -1,51 +1,55 @@
 #![allow(unused_mut)]
 
-use std::env;
-use std::process;
-// use std::fs;
-use confertus::avl_tree::AVL;
 use confertus::commands;
 use confertus::config::Config;
-use confertus::{DynamicBitVector, Leaf, Node};
+use confertus::{BitSize, DynamicBitVector};
+use std::env;
+use std::process;
+use std::time::{Duration, Instant};
 
-use std::mem::size_of;
-
-macro_rules! show_size {
-    (header) => {
-        println!("{:<7} size in bytes  {:>4}    {}", "Type", "T", "Option<T>");
-    };
-    ($t:ty) => {
-        println!(
-            "{:<22} {:4} {:4}",
-            stringify!($t),
-            size_of::<$t>(),
-            size_of::<Option<$t>>()
-        )
-    };
-}
+// use std::mem::size_of;
+//
+// macro_rules! show_size {
+//     (header) => {
+//         println!("{:<7} size in bytes  {:>4}    {}", "Type", "T", "Option<T>");
+//     };
+//     ($t:ty) => {
+//         println!(
+//             "{:<22} {:4} {:4}",
+//             stringify!($t),
+//             size_of::<$t>(),
+//             size_of::<Option<$t>>()
+//         )
+//     };
+// }
 
 /// TODO
-/// - [ ] Static Bit Vector
-/// - [ ] Some kind of self-balancing binary tree (AVL / Red-Black / ...)
-/// - [ ] Range-Min-Max-Tree
-fn main() {
-    println!("{}", u32::MAX);
-    println!("{}", i32::MAX);
-    show_size!(header);
-    show_size!(usize);
-    show_size!(isize);
-    show_size!(AVL);
-    show_size!(Box<AVL>);
-    show_size!(i32);
-    show_size!(u32);
-    show_size!(Node);
-    show_size!(Leaf);
-    show_size!(DynamicBitVector);
-    show_size!(Vec<Node>);
-    show_size!(Vec<Leaf>);
-    show_size!(u64);
-    show_size!(u128);
-    show_size!(u8);
+/// - [x] Static Bit Vector
+/// - [x] Some kind of self-balancing binary tree (AVL / Red-Black / ...)
+/// - [ ] Balanced Parenthesis
+/// - [ ] Extending LeafValue container
+/// - [ ] BP with Range-Min-Max-Tree
+fn main() -> Result<(), std::io::Error> {
+    // time measured and duration is on millisecond level.
+    let mut time_total: Duration = Duration::from_millis(0);
+    let mut last_timestamp_cont: Instant = Instant::now();
+    let mut dbv = DynamicBitVector::new();
+
+    // println!("{}", u32::MAX);
+    // println!("{}", i32::MAX);
+    // show_size!(header);
+    // show_size!(usize);
+    // show_size!(isize);
+    // show_size!(i32);
+    // show_size!(u32);
+    // show_size!(Node);
+    // show_size!(Leaf);
+    // show_size!(DynamicBitVector);
+    // show_size!(Vec<Node>);
+    // show_size!(Vec<Leaf>);
+    // show_size!(u64);
+    // show_size!(u128);
+    // show_size!(u8);
 
     let args: Vec<String> = env::args().collect();
 
@@ -63,7 +67,8 @@ fn main() {
             if let Some(Ok(first)) = lines.next() {
                 println!("{:?}", first);
                 let mut idx = first.parse::<usize>().unwrap();
-                let mut dbv = DynamicBitVector::new();
+                let mut rank = 0;
+                let mut sel = 0;
                 println!("{:?}", idx);
                 for line in lines {
                     if idx > 0 {
@@ -90,10 +95,16 @@ fn main() {
                                 dbv = commands::flip(dbv, command);
                             }
                             "rank" => {
-                                dbv = commands::rank(dbv, command);
+                                (rank, dbv) = commands::rank(dbv, command);
+                                time_total += Instant::now().duration_since(last_timestamp_cont);
+                                commands::append_file(&config.file_out, rank)?;
+                                last_timestamp_cont = Instant::now();
                             }
                             "select" => {
-                                dbv = commands::select(dbv, command);
+                                (sel, dbv) = commands::select(dbv, command);
+                                time_total += Instant::now().duration_since(last_timestamp_cont);
+                                commands::append_file(&config.file_out, sel)?;
+                                last_timestamp_cont = Instant::now();
                             }
                             _ => panic!("unrecognized command in file"),
                         }
@@ -118,20 +129,28 @@ fn main() {
             }
         }
     }
-
-    print_results();
+    time_total += Instant::now().duration_since(last_timestamp_cont);
+    print_results(&config.algo, time_total, dbv);
+    Ok(())
 }
 
-fn print_results() {
-    // RESULT algo=bv name<first last name> time=<running time without output in ms> space=<required space in bits>
-    // println!("RESULT algo={} name<Felix Karg> time=<{}> space=<{}>");
-    println!("RESULTS");
+fn print_results<B>(algo: &str, time: Duration, space: B)
+where
+    B: BitSize,
+{
+    println!(
+        "RESULT algo={algo} name<Felix Karg> time=<{:?}>[ms] space=<{}>[bits]",
+        time.as_millis(),
+        space.bitsize_full()
+    );
+    // println!("RESULTS");
 }
 
 /// Apparently it's a unit test simply by being in `main.rs`
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
+
     #[test]
     fn exploration() {
         assert_eq!(2 + 2, 4);

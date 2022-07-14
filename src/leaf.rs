@@ -143,6 +143,7 @@ impl Leaf {
     /// - `index <= self.nums`
     pub unsafe fn insert_unchecked(&mut self, index: usize, bit: bool) {
         // results in "attempt to subtract with overflow". TODO: debug sometime
+        // results in "attempt to shift left with overflow". on insert 0 0 TOOD: debug sometime
         let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32); // in- or excluding index here?
         let rmask = LeafValue::MAX >> (index as u32);
         self.value =

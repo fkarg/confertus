@@ -2,7 +2,7 @@
 #![allow(unused_imports)]
 
 use super::dynamic_vector::DynamicBitVector;
-use std::fs::{write, File};
+use std::fs::{write, File, OpenOptions};
 use std::io::stdin;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
@@ -41,26 +41,44 @@ pub fn flip(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
     vec
 }
 
-pub fn rank(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
+pub fn rank(mut vec: DynamicBitVector, command: Vec<&str>) -> (usize, DynamicBitVector) {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
-    vec.rank(index, bit);
-    vec
+    let rank = vec.rank(index, bit);
+    (rank, vec)
 }
 
-pub fn select(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
+pub fn select(mut vec: DynamicBitVector, command: Vec<&str>) -> (usize, DynamicBitVector) {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
-    vec.select(index, bit);
-    vec
+    let sel = vec.select(index, bit);
+    (sel, vec)
 }
 
+/// Write `text` to (non-) existing `filename`, overwriting it.
 pub fn write_file<P>(filename: P, text: &str) -> std::io::Result<()>
 where
     P: AsRef<Path>,
 {
     write(filename, text)?;
     Ok(())
+}
+
+/// Appending `text` to existing file with `filename` after newline. Creates file if it does not
+/// exist yet.
+pub fn append_file<P>(filename: P, val: usize) -> std::io::Result<()>
+where
+    P: AsRef<Path>,
+{
+    let mut file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .open(filename)
+        .unwrap();
+
+    // file.write_all(b"to append");
+    // or
+    write!(file, "\n{}", val)
 }
 
 pub fn wait_continue() {

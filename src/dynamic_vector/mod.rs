@@ -640,7 +640,6 @@ impl DynamicBitVector {
             unsafe { self[leaf].insert_unchecked(index, bit) };
             println!("unchecked insert of {bit} at {index}");
         }
-        self.viz_stop();
     }
 
     /// Handle inserting `bit` at position `index` in given `node`
@@ -1102,6 +1101,7 @@ impl DynamicBitVector {
 
     /// Output current tree state to file for visualization and pause execution until input is
     /// given
+    #[inline]
     fn viz_stop(&self) {
         println!("stopped for visualization. to continue: [Enter]");
         commands::write_file("tmp.txt", &self.dotviz(0)).unwrap();
@@ -1200,7 +1200,7 @@ impl DynamicBitVector {
 impl Dot for DynamicBitVector {
     fn dotviz(&self, self_id: isize) -> String {
         format!(
-            "\n\ndigraph tree {{ \
+            "\n\ndigraph tree {{\n\
             BV [label=<DynamicBitVector>];\n\
             BV -> N{} [label=<root>];\n\
             {} \n\
@@ -1221,11 +1221,13 @@ impl Dot for DynamicBitVector {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn exploration() {
-        assert_eq!(2 + 2, 4);
+impl BitSize for DynamicBitVector {
+    fn bitsize_full(&self) -> usize {
+        448 + self.leafs.len() * 17 * 8 + self.nodes.len() * 325
     }
 }
+
+// further modules with implementations
+
+#[cfg(test)]
+mod tests;
