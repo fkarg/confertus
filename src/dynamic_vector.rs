@@ -859,21 +859,32 @@ impl DynamicBitVector {
     pub fn merge_away(&mut self, leaf: isize) {
         // first, find neighboring child.
         if let Some(neighbor) = self.closest_neighbor_leaf(leaf) {
+            let n = neighbor.either_into::<isize>();
             // neighbor is leaf. check if we can merge into
-            if (self[neighbor.either_into::<isize>()].nums as u32) <= { 3 * LeafValue::BITS / 4 } {
+            if (self[n].nums as u32) <= { 3 * LeafValue::BITS / 4 } {
                 // neighbor has enough room to spare, merge
+                let parent = self[leaf].parent;
                 self.merge_leafs(leaf, neighbor);
+                self.update_left_values_node(parent);
             } else {
-                //
-                todo!("steal bits")
+                let stolen_bits = self[n].nums - HALF as u8;
+                let extension = match neighbor {
+                    Right(n) => Right(self[n].split_to_left()),
+                    Left(n) => Left(self[n].split_to_right()),
+                };
+                self[leaf].extend(extension, stolen_bits);
+                self.update_left_values(self[leaf].parent, leaf);
             }
-            // TODO: update parent `nums` and `ones` if left child
+            // update parent `nums` and `ones` for neighbor with new bits
+            self.update_left_values(self[n].parent, n);
         }
         // no neighbor exists. Cannot merge, but that's ok too
     }
 
     /// It's expected that `small_leaf` has size `<= 1/4 LeafValue::BITS`, and
     /// size of `merge_or_steal_into` is `<= 3/4 LeafValue::BITS`. Might panic otherwise.
+    ///
+    /// This operation will remove the Leaf `small_leaf` from `self.leafs`.
     fn merge_leafs(&mut self, small_leaf: isize, merge_or_steal_into: Side<isize>) {
         let leaf = self[small_leaf].clone();
         let parent = self[small_leaf].parent;
@@ -1122,6 +1133,16 @@ impl DynamicBitVector {
             }
         }
         // everything else (was right child) doesn't matter
+    }
+
+    #[inline]
+    fn update_left_values_node(&mut self, node: usize) {
+        if let Some(l) = self[node].left {
+            self.update_left_values(node, l);
+        } else {
+            self[node].nums = 0;
+            self[node].ones = 0;
+        }
     }
 
     /// Graphically, update values `nums` and `ones` from `N1` (`to_update`) by adding values from

@@ -4,6 +4,7 @@ use either::{Left, Right};
 use std::fmt;
 
 type Side<T> = either::Either<T, T>;
+// type NumSize = u8;
 
 /// Container type used to contain bits in [`Leaf`]. Sensible options are [`u64`] and [`u128`].
 /// Might be replaced with custom implementation featuring higher bit container size later (e.g.
@@ -14,6 +15,8 @@ type Side<T> = either::Either<T, T>;
 /// not automatically extend to `u128`. I researched conditional compilation for a bit, but
 /// couldn't figure out how to do that.
 pub type LeafValue = u64;
+
+pub const HALF: u32 = LeafValue::BITS / 2;
 
 /// Leaf element of [`crate::DynamicBitVector`]. Next to its value ([`LeafValue`]) and bits used
 /// inside (`nums`), it contains a reference to its parent [`crate::Node`].
@@ -172,7 +175,7 @@ impl Leaf {
     pub unsafe fn delete_unchecked(&mut self, index: usize) {
         let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32);
         let rmask = LeafValue::MAX >> index as u32;
-        self.value = (self.value & lmask) | ((self.value & rmask) << 1);
+        self.value = ((self.value & lmask) >> 1) | (self.value & rmask);
         self.nums -= 1;
     }
 
@@ -295,20 +298,33 @@ impl Leaf {
 
     // SPLIT
 
-    /// Return full second half of `Leaf`-values, and remove them from `self`, to be inserted to
-    /// a Leaf right of `self`.
+    /// Return full second/left half of `Leaf`-values, and remove them from `self`, to be inserted
+    /// to a Leaf right of `self`.
     pub fn split_to_right(&mut self) -> LeafValue {
         // save the second/left half of self.value temporarily. zero out the rest.
-        let ret = self.value.rotate_right(LeafValue::BITS / 2) << (LeafValue::BITS / 2);
+        let ret = self.value.rotate_right(HALF) << HALF;
         // keep first half of self.value, zero out the others.
-        self.value = (self.value << (LeafValue::BITS / 2)) >> (LeafValue::BITS / 2);
+        self.value = (self.value << HALF) >> HALF;
         // Size is now reduced to exactly half size.
-        self.nums = (LeafValue::BITS / 2) as u8;
+        self.nums = HALF as u8;
         // return second half shifted to the right.
-        ret >> (LeafValue::BITS / 2)
+        ret >> HALF
     }
 
-    // MERGE
+    /// Return full first/right half of `Leaf`-values, and remove them from `self`, to be inserted
+    /// to a Leaf left of `self`.
+    pub fn split_to_left(&mut self) -> LeafValue {
+        // save the first/right half of self.value temporarily. zero out the rest.
+        let ret = (self.value << HALF) >> HALF;
+        // keep second half of self.value, zero out the others.
+        self.value = self.value >> HALF;
+        // Size is now reduced by half size.
+        self.nums -= HALF as u8;
+        // return first half
+        ret
+    }
+
+    // MERGE / EXTEND
 
     /// Extend LeafValue container with given values on given side by `num`.
     ///
