@@ -131,7 +131,7 @@ impl Leaf {
     /// - `index < LeafValue::BITS`
     /// - `index <= self.nums`
     pub unsafe fn insert_unchecked(&mut self, index: usize, bit: bool) {
-        // results in "attempt to subtract with overflow". debug sometime
+        // results in "attempt to subtract with overflow". TODO: debug sometime
         let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32); // in- or excluding index here?
         let rmask = LeafValue::MAX >> (index as u32);
         self.value =
@@ -310,5 +310,14 @@ impl Dot for Leaf {
         )
         // format!("L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n\
         //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn exploration() {
+        assert_eq!(2 + 2, 4);
     }
 }

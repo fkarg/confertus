@@ -127,3 +127,13 @@ fn print_results() {
     // println!("RESULT algo={} name<Felix Karg> time=<{}> space=<{}>");
     println!("RESULTS");
 }
+
+/// Apparently it's a unit test simply by being in `main.rs`
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn exploration() {
+        assert_eq!(2 + 2, 4);
+    }
+}
