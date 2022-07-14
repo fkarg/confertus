@@ -1,8 +1,7 @@
-use crate::traits::*;
 use super::*;
+use crate::traits::*;
 
-
-impl Dot for Leaf {
+impl<T: fmt::Binary> Dot for Leaf<T> {
     fn dotviz(&self, self_id: isize) -> String {
         format!(
             "L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n",
@@ -13,10 +12,12 @@ impl Dot for Leaf {
     }
 }
 
-
 /// Debug formatting is of format `Leaf[P: <{self.parent}>, nums {self.nums}, value {self.value in
 /// binary representation}]`
-impl fmt::Debug for Leaf {
+impl<T: fmt::Binary> fmt::Debug for Leaf<T>
+where
+    T: fmt::Debug + fmt::Binary,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if LeafValue::BITS == 64 {
             write!(
@@ -33,4 +34,3 @@ impl fmt::Debug for Leaf {
         }
     }
 }
-

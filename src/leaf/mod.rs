@@ -1,7 +1,10 @@
 use crate::traits::*;
 use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
 use either::{Left, Right};
+use num::Integer;
 use std::fmt;
+
+use core::ops::*; // {BitAnd, BitOr, Shl, Shr, Sub, Not};
 
 type Side<T> = either::Either<T, T>;
 // type NumSize = u8;
@@ -23,24 +26,26 @@ pub const HALF: u32 = LeafValue::BITS / 2;
 ///
 /// Instance bit size: 17~25 bytes, depending on `LeafValue`
 #[derive(PartialEq, Clone, Default)]
-pub struct Leaf {
+pub struct Leaf<T> {
     /// reference to parent [`crate::Node`] (8 byte)
     pub parent: usize, // 8 bytes
     /// container for actual bit values (8-16 byte)
-    pub value: LeafValue, // 8~16 bytes
+    pub value: T, // 8~16 bytes
     /// number of bits used in `value`-container. Below `u128::BITS == 128`, so `u8::MAX = 255` is
     /// sufficient. (1 byte)
     pub nums: u8, // realistically below u128::BITS, so u8::MAX = 255 is sufficient. // 1 byte
 }
 
-
-impl Leaf {
+impl<T> Leaf<T>
+where
+    T: StaticBitVec + fmt::Debug + BitContainer,
+{
     // ACCESS
 
     /// Access bit value at position `index`
     ///
     /// # Panics
-    /// If `index` > [`LeafValue::BITS`]
+    /// If `index` > [`T::BITS`]
     #[inline]
     pub fn access(&self, index: usize) -> bool {
         (self.value >> index) & 1 == 1
@@ -48,7 +53,7 @@ impl Leaf {
 
     /// Return full internal bit container
     #[inline]
-    pub fn values(&self) -> LeafValue {
+    pub fn values(&self) -> T {
         self.value
     }
     // }
@@ -68,7 +73,7 @@ impl Leaf {
 
     /// Cunstructs a new `Leaf` with parent `parent` and
     #[inline]
-    pub fn create(parent: usize, value: LeafValue, nums: u8) -> Self {
+    pub fn create(parent: usize, value: T, nums: u8) -> Self {
         Leaf {
             parent,
             value,
@@ -81,9 +86,9 @@ impl Leaf {
     /// Appends bit to the end of `self.value`.
     ///
     /// # Errors
-    /// If used capacity `nums` equals `LeafValue::BITS` bits before push (Leaf is full).
+    /// If used capacity `nums` equals `T::BITS` bits before push (Leaf is full).
     pub fn push(&mut self, bit: bool) -> Result<(), &str> {
-        if u32::from(self.nums) < LeafValue::BITS {
+        if u32::from(self.nums) < T::BITS {
             unsafe {
                 self.push_unchecked(bit);
             }
@@ -97,10 +102,10 @@ impl Leaf {
     ///
     /// # Safety
     /// Unchecked invariant: used capacity `nums` is less than the total capacity of
-    /// `LeafValue::BITS` bits before push.
+    /// `T::BITS` bits before push.
     #[inline]
     pub unsafe fn push_unchecked(&mut self, bit: bool) {
-        self.value |= (bit as LeafValue) << self.nums;
+        self.value |= (bit as T) << self.nums;
         self.nums += 1;
     }
 
@@ -109,9 +114,9 @@ impl Leaf {
     /// Insert `bit` at position `index` in [`Leaf`].
     ///
     /// # Errors
-    /// When Leaf full or `index` out of bounds (`> self.nums` or `>= LeafValue::Bits`).
+    /// When Leaf full or `index` out of bounds (`> self.nums` or `>= T::Bits`).
     pub fn insert(&mut self, index: usize, bit: bool) -> Result<(), &str> {
-        if self.nums as u32 >= LeafValue::BITS {
+        if self.nums as u32 >= T::BITS {
             Err("No free capacity left")
         } else {
             unsafe { self.insert_unchecked(index, bit) };
@@ -123,15 +128,14 @@ impl Leaf {
     ///
     /// # Safety
     /// Unchecked invariants:
-    /// - `index < LeafValue::BITS`
+    /// - `index < T::BITS`
     /// - `index <= self.nums`
     pub unsafe fn insert_unchecked(&mut self, index: usize, bit: bool) {
         // results in "attempt to subtract with overflow". TODO: debug sometime
         // results in "attempt to shift left with overflow". on insert 0 0 TOOD: debug sometime
-        let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32); // in- or excluding index here?
-        let rmask = LeafValue::MAX >> (index as u32);
-        self.value =
-            (self.value & lmask) | ((bit as LeafValue) << index) | ((self.value & rmask) >> 1);
+        let lmask = T::MAX << (T::BITS - index as u32); // in- or excluding index here?
+        let rmask = T::MAX >> (index as u32);
+        self.value = (self.value & lmask) | ((bit as T) << index) | ((self.value & rmask) >> 1);
         self.nums += 1;
     }
 
@@ -140,7 +144,7 @@ impl Leaf {
     /// Remove bit value at position `index`
     ///
     /// # Errors
-    /// When Leaf empty or `index` out of bounds (`> self.nums` or `> LeafValue::BITS`).
+    /// When Leaf empty or `index` out of bounds (`> self.nums` or `> T::BITS`).
     pub fn delete(&mut self, index: usize) -> Result<(), &str> {
         if self.is_empty() {
             Err("Tried to delete in empty leaf")
@@ -154,12 +158,12 @@ impl Leaf {
     ///
     /// # Safety
     /// List of unchecked invariants:
-    /// - `index < LeafValue::BITS`
+    /// - `index < T::BITS`
     /// - `index < self.nums`
     /// - `self.nums > 0`
     pub unsafe fn delete_unchecked(&mut self, index: usize) {
-        let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32);
-        let rmask = LeafValue::MAX >> index as u32;
+        let lmask = T::MAX << (T::BITS - index as u32);
+        let rmask = T::MAX >> index as u32;
         self.value = ((self.value & lmask) >> 1) | (self.value & rmask);
         self.nums -= 1;
     }
@@ -244,7 +248,7 @@ impl Leaf {
             // respective rank.
             let mut pos = 0;
             let mut i = n;
-            for shift in (0..LeafValue::BITS).rev() {
+            for shift in (0..T::BITS).rev() {
                 if (((self.value >> shift) & 1) != 0) == bit {
                     if i == 0 {
                         return pos;
@@ -285,7 +289,7 @@ impl Leaf {
 
     /// Return full second/left half of `Leaf`-values, and remove them from `self`, to be inserted
     /// to a Leaf right of `self`.
-    pub fn split_to_right(&mut self) -> LeafValue {
+    pub fn split_to_right(&mut self) -> T {
         // save the second/left half of self.value temporarily. zero out the rest.
         let ret = self.value.rotate_right(HALF) << HALF;
         // keep first half of self.value, zero out the others.
@@ -298,7 +302,7 @@ impl Leaf {
 
     /// Return full first/right half of `Leaf`-values, and remove them from `self`, to be inserted
     /// to a Leaf left of `self`.
-    pub fn split_to_left(&mut self) -> LeafValue {
+    pub fn split_to_left(&mut self) -> T {
         // save the first/right half of self.value temporarily. zero out the rest.
         let ret = (self.value << HALF) >> HALF;
         // keep second half of self.value, zero out the others.
@@ -311,7 +315,7 @@ impl Leaf {
 
     // MERGE / EXTEND
 
-    /// Extend LeafValue container with given values on given side by `num`.
+    /// Extend T container with given values on given side by `num`.
     ///
     /// `Left` side means that values are originally of lower index than current leaf, thus
     /// inserting them to the beginning.
@@ -319,26 +323,26 @@ impl Leaf {
     /// `Right` side means that values are originally of higher index than current leaf, thus
     /// inserting them at the end.
     #[inline]
-    pub fn extend(&mut self, values: Side<LeafValue>, nums: u8) {
+    pub fn extend(&mut self, values: Side<T>, nums: u8) {
         match values {
             Right(v) => self.extend_from(Leaf::create(0, v, nums)),
             Left(v) => self.prepend(Leaf::create(0, v, nums)),
         }
     }
 
-    /// Extend LeafValue container with values from other Leaf with originally higher index.
+    /// Extend T container with values from other Leaf with originally higher index.
     /// Appends new values to end.
     #[inline]
-    pub fn extend_from(&mut self, ref leaf: Leaf) {
+    pub fn extend_from(&mut self, ref leaf: Leaf<T>) {
         self.value |= leaf.values() << leaf.nums();
         self.nums += leaf.nums() as u8;
     }
 
-    /// Prepend other values to existing values in LeafValue container. Current values are moved
+    /// Prepend other values to existing values in T container. Current values are moved
     /// later.
     #[inline]
-    pub fn prepend(&mut self, ref leaf: Leaf) {
-        self.value <<= leaf.nums();
+    pub fn prepend(&mut self, ref leaf: Leaf<T>) {
+        self.value = leaf.value << leaf.nums();
         self.value |= leaf.values();
         self.nums += leaf.nums() as u8;
     }

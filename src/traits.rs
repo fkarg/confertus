@@ -1,9 +1,12 @@
 use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
+use core::ops::*;
+use num::{Integer, PrimInt};
+use std::fmt;
 
 /// Functions associated with static bit vectors. Not to be confused with specific containers such
 /// as [`u64`], [`u128`] or particulary [`Leaf`](crate::Leaf), which additionally tracks the number
 /// of used bits, `nums`, and a parent [`Node`](crate::Node).
-pub trait StaticBitVec {
+pub trait StaticBitVec: fmt::Debug + BitContainer {
     type Intern;
 
     /// Return number of on-bits in Container
@@ -49,6 +52,8 @@ pub trait DynBitVec<T: StaticBitVec> {
     // fn bitclear(self, i: usize);
 }
 
+/// Functions associated with dynamic bit trees, specifically a Balanced Parenthesis
+/// implementation.
 pub trait DynBitTree {
     /// `deletenode v` delete node v
     fn deletenode(self, v: usize);
@@ -89,5 +94,28 @@ pub trait BitSize {
 
     /// Return total number of bits used by objects managed by structures. Includes all elements on
     /// different areas of heap.
-    fn bitsize_full(&self) -> usize;
+    fn bitsize_full(&self) -> usize
+    where
+        Self: Sized,
+    {
+        self.bitsize()
+    }
 }
+
+pub trait BitContainer<T = Self>: BitOrAssign<T>
+        + ShlAssign<usize>
+        + BitAnd<Output = Self>
+        + BitOr<Output = Self>
+        + Shl<u32>
+        + Shr<u32>
+        + Shl<Output = Self>
+        + Shr<Output = Self>
+        + Sub<Output = Self>
+        // + BitXorAssign<Integer>
+        + PrimInt
+        + PartialEq<Self>
+        + fmt::Binary
+{ }
+
+impl BitContainer for u64 {}
+impl BitContainer for u128 {}

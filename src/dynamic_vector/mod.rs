@@ -1,7 +1,7 @@
 pub use super::leaf::*;
 pub use super::node::*;
 use crate::commands;
-use crate::traits::{Dot, StaticBitVec};
+use crate::traits::{BitContainer, Dot, StaticBitVec};
 use either;
 use either::{Left, Right};
 use std::fmt;
@@ -15,7 +15,10 @@ type Side<T> = either::Either<T, T>;
 /// Instance bit size: 56 bytes = 448
 /// (not included: bit sizes of instances in Vector structures)
 #[derive(Debug, PartialEq, Clone, Default)]
-pub struct DynamicBitVector {
+pub struct DynamicBitVector<T>
+where
+    T: StaticBitVec + fmt::Debug + BitContainer,
+{
     /// index to root [`Node`], 8 bytes
     pub root: usize, // 8 bytes
     // positively indexed, usize
@@ -23,12 +26,15 @@ pub struct DynamicBitVector {
     pub nodes: Vec<Node>, // 24 bytes
     // negatively indexed, isize
     /// Vector containing [`Leaf`], 24 bytes
-    pub leafs: Vec<Leaf>, // 24 bytes
-                          // last: isize, // 8 bytes, index to right-most leaf
-                          // prev: isize, // 8 bytes, index to previously accessed leaf
+    pub leafs: Vec<Leaf<T>>, // 24 bytes
+                             // last: isize, // 8 bytes, index to right-most leaf
+                             // prev: isize, // 8 bytes, index to previously accessed leaf
 }
 
-impl DynamicBitVector {
+impl<T> DynamicBitVector<T>
+where
+    T: StaticBitVec + fmt::Debug + BitContainer,
+{
     // CONSTRUCTOR
 
     /// Constructs new `DynamicBitVector` with empty root [`Node`].
@@ -87,18 +93,18 @@ impl DynamicBitVector {
     ///
     /// # Panics
     /// If tree invariances are violated
-    pub fn apply<T>(
+    pub fn apply(
         &mut self,
-        mut f: impl FnMut(&mut DynamicBitVector, isize, usize) -> T,
+        mut f: impl FnMut(&mut DynamicBitVector<T>, isize, usize) -> T,
         index: usize,
     ) -> T {
         self.apply_node(self.root, f, index)
     }
 
-    fn apply_node<T>(
+    fn apply_node(
         &mut self,
         node: usize,
-        mut f: impl FnMut(&mut DynamicBitVector, isize, usize) -> T,
+        mut f: impl FnMut(&mut DynamicBitVector<T>, isize, usize) -> T,
         index: usize,
     ) -> T {
         // index 128 is at right side when `nums == 128`, include right side/equal sign
@@ -131,10 +137,10 @@ impl DynamicBitVector {
     ///
     /// # Panics
     /// If tree invariances are violated
-    pub fn apply_bitop<T>(
+    pub fn apply_bitop(
         &mut self,
-        mut f: impl FnMut(&mut DynamicBitVector, isize, usize, bool) -> T,
-        g: impl Fn(&DynamicBitVector, usize, bool) -> T,
+        mut f: impl FnMut(&mut DynamicBitVector<T>, isize, usize, bool) -> T,
+        g: impl Fn(&DynamicBitVector<T>, usize, bool) -> T,
         index: usize,
         bit: bool,
     ) -> T
@@ -144,11 +150,11 @@ impl DynamicBitVector {
         self.apply_bitop_node(self.root, f, g, index, bit)
     }
 
-    fn apply_bitop_node<T>(
+    fn apply_bitop_node(
         &mut self,
         node: usize,
-        mut f: impl FnMut(&mut DynamicBitVector, isize, usize, bool) -> T,
-        g: impl Fn(&DynamicBitVector, usize, bool) -> T,
+        mut f: impl FnMut(&mut DynamicBitVector<T>, isize, usize, bool) -> T,
+        g: impl Fn(&DynamicBitVector<T>, usize, bool) -> T,
         index: usize,
         bit: bool,
     ) -> T

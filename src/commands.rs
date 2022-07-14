@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 
 use super::dynamic_vector::DynamicBitVector;
+use crate::StaticBitVec;
 use std::fs::{write, File, OpenOptions};
 use std::io::stdin;
 use std::io::{self, BufRead, Write};
@@ -21,7 +22,10 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-pub fn insert(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
+pub fn insert<T: StaticBitVec>(
+    mut vec: DynamicBitVector<T>,
+    command: Vec<&str>,
+) -> DynamicBitVector<T> {
     let index = command[1].parse::<usize>().unwrap();
     // let bit = command[2].parse::<bool>().unwrap();
     let bit = command[2] != "0";
@@ -29,26 +33,38 @@ pub fn insert(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector
     vec
 }
 
-pub fn delete(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
+pub fn delete<T: StaticBitVec>(
+    mut vec: DynamicBitVector<T>,
+    command: Vec<&str>,
+) -> DynamicBitVector<T> {
     let index = command[1].parse::<usize>().unwrap();
     vec.delete(index);
     vec
 }
 
-pub fn flip(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
+pub fn flip<T: StaticBitVec>(
+    mut vec: DynamicBitVector<T>,
+    command: Vec<&str>,
+) -> DynamicBitVector<T> {
     let index = command[1].parse::<usize>().unwrap();
     vec.flip(index);
     vec
 }
 
-pub fn rank(mut vec: DynamicBitVector, command: Vec<&str>) -> (usize, DynamicBitVector) {
+pub fn rank<T: StaticBitVec>(
+    mut vec: DynamicBitVector<T>,
+    command: Vec<&str>,
+) -> (usize, DynamicBitVector<T>) {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
     let rank = vec.rank(index, bit);
     (rank, vec)
 }
 
-pub fn select(mut vec: DynamicBitVector, command: Vec<&str>) -> (usize, DynamicBitVector) {
+pub fn select<T: StaticBitVec>(
+    mut vec: DynamicBitVector<T>,
+    command: Vec<&str>,
+) -> (usize, DynamicBitVector<T>) {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
     let sel = vec.select(index, bit);
