@@ -1,18 +1,22 @@
+/// Container trait for static bit vector functionality
 pub trait StaticBitVec {
     type Intern;
+    // /// Constructor
+    // fn new() -> Self;
 
-    /// Constructor
-    fn new() -> Self;
+    /// Return number of on-bits in Container
+    fn ones(&self) -> usize;
 
     /// `access i` return bit value at position i
-    fn access(self, i: usize) -> bool;
+    fn access(&self, index: usize) -> bool;
 
-    /// `rank [0|1] i` return rank0 or rank1 up to position i
-    /// Maschinenbefehl: popcount (?)
-    fn rank(&self, bit: bool, i: usize) -> usize;
+    /// `rank [0|1] i` return rank0 or rank1 up to position `index`
+    fn rank(&self, bit: bool, index: usize) -> usize;
 
-    /// `select [0|1] i` return select0 or select1 for the i-th occurrence
-    fn select(&self, bit: bool, i: usize) -> usize;
+    /// `select [0|1] n` return select0 or select1 for the i-th occurrence
+    fn select(&self, bit: bool, n: usize) -> usize;
+
+    // fn values(&self) -> T;
 }
 
 pub trait DynBitVec<T: StaticBitVec> {
@@ -30,13 +34,13 @@ pub trait DynBitVec<T: StaticBitVec> {
     /// updates `ones` and `num` accordingly
     fn flip(self, i: usize);
 
-    /// `bitset  i` sets `i`-th bit to 1
-    /// updates `ones` and `num` accordingly
-    fn bitset(self, i: usize);
+    // /// `bitset  i` sets `i`-th bit to 1
+    // /// updates `ones` and `num` accordingly
+    // fn bitset(self, i: usize);
 
-    /// `bitclear i` sets `i`-th bit to 0
-    /// updates `ones` and `num` accordingly
-    fn bitclear(self, i: usize);
+    // /// `bitclear i` sets `i`-th bit to 0
+    // /// updates `ones` and `num` accordingly
+    // fn bitclear(self, i: usize);
 }
 
 pub trait DynBitTree {

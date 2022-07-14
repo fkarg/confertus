@@ -1,21 +1,19 @@
 pub use super::leaf::*;
 pub use super::node::*;
 use crate::commands;
-use crate::traits::Dot;
+use crate::traits::*;
+use either;
+use either::{Left, Right};
 use std::fmt;
 use std::ops::{Add, Index, IndexMut};
 
-type Child = bool;
+type Side<T> = either::Either<T, T>;
 
 /// Implementation of Dynamic Bit Vector using self-balancing [AVL
 /// tree](https://en.wikipedia.org/wiki/AVL_tree).
 ///
 /// Instance bit size: 56 bytes = 448
 /// (not included: bit sizes of instances in Vector structures)
-///
-/// Technically, A [`Vec`]-instance does not require the full 24 * 8 = 192 bits, particularly since
-/// a `Option<Vec<T>>` has the same size as a `Vec<T>` (this optimization is possible for various
-/// other types too, it seems).
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct DynamicBitVector {
     /// index to root [`Node`], 8 bytes
@@ -394,6 +392,7 @@ impl DynamicBitVector {
         }
         // first, find parent
         if let Some(parent) = self[node].parent {
+            // TODO: diff sign depends on side the update is coming from ... argh
             self[parent].rank += diff;
             if i8::abs(self[parent].rank) == 2 {
                 // we can now rebalance, and don't need to continue tracing
@@ -489,8 +488,7 @@ impl DynamicBitVector {
             // leaf
             self[r].parent = x;
         }
-        // TODO: validate
-        todo!(".rotate_right {}", self)
+        todo!(".rotate_right {}", self) // validate
     }
 
     /// Rebalance tree to reestablish the rank difference invariance (valid values -1, 0, 1).
@@ -614,6 +612,7 @@ impl DynamicBitVector {
     pub fn split_leaf(&mut self, leaf: isize) -> usize {
         // creating new node and making current leaf left child
         let new_node = self.insert_node_at_leaf(leaf);
+        self.retrace(new_node, 1);
         // moving half of leaf to newly created leaf.
         let values = self[leaf].split();
         let leaf_id = self.create_right_leaf(new_node);
@@ -662,6 +661,7 @@ impl DynamicBitVector {
             unsafe { self[leaf].insert_unchecked(index, bit) };
             println!("unchecked insert of {bit} at {index}");
         }
+        self.viz_stop();
     }
 
     /// Handle inserting `bit` at position `index` in given `node`
@@ -721,9 +721,9 @@ impl DynamicBitVector {
     /// Delete bit at position `index`
     #[inline]
     pub fn delete(&mut self, index: usize) {
-        // let leaf = self.apply(Self::delete_leaf, index);
-        // self.update_left_values(self[leaf].parent, leaf);
-        self.delete_node(self.root, index);
+        let leaf = self.apply(Self::delete_leaf, index);
+        self.update_left_values(self[leaf].parent, leaf);
+        // self.delete_node(self.root, index);
     }
 
     /// Delete bit at position `index` in `leaf`, handle all cases.
@@ -740,24 +740,50 @@ impl DynamicBitVector {
 
     fn delete_node(&mut self, node: usize, index: usize) {
         // TODO: update `nums` and `ones` during descent
+        // update `nums` and `ones` values during descent
+        if self[node].nums <= index {
+            // enter right side
+            let right_id = self[node].right.unwrap();
+            if right_id >= 0 {
+                self.delete_node(right_id as usize, index - self[node].nums);
+            } else {
+                // leaf
+                self.delete_leaf(right_id, index - self[node].nums);
+            }
+        } else {
+            // enter left side
+            let left_id = self[node].left.unwrap();
+            // self[node].nums += 1;
+            // if bit {
+            //     self[node].ones += 1;
+            // }
+            // // TODO: welp, information to update nums and bits not really available here.
+            if left_id >= 0 {
+                self.delete_node(left_id as usize, index);
+            } else {
+                // leaf
+                self.delete_leaf(left_id, index);
+            }
+        }
         self.viz_stop();
         todo!(".delete_node {}", self);
     }
 
     /// Return closest immediately sequential neighbor to given [`Leaf`] `leaf`, should it exist.
-    pub fn closest_neighbor_leaf(&self, leaf: isize) -> Option<isize> {
+    /// `Either` additionally tells if it was a right or left child.
+    pub fn closest_neighbor_leaf(&self, leaf: isize) -> Option<Side<isize>> {
         // first, check other child of immediate parent
         let parent = self[leaf].parent;
         if let Some(l) = self[parent].left {
             if l != leaf {
                 // child is on right side of parent
-                return Some(l);
+                return Some(Right(l));
             }
         }
         if let Some(r) = self[parent].right {
             if r != leaf {
                 // child is on left side of parent
-                return Some(r);
+                return Some(Left(r));
             }
         }
 
@@ -768,7 +794,7 @@ impl DynamicBitVector {
     /// Try to return a Leaf that is the closest neighbor (left or right) to the given Node
     /// `child` by ascending, and descending the respectively 'other' side of `child`. Fails if no
     /// such neighbor exists.
-    pub fn closest_neighbor_child(&self, child: usize) -> Option<isize> {
+    pub fn closest_neighbor_child(&self, child: usize) -> Option<Side<isize>> {
         if let Some(p) = self[child].parent {
             if let Some(l) = self[p].left {
                 if l != (child as isize) {
@@ -790,38 +816,38 @@ impl DynamicBitVector {
     }
 
     /// Try to return the leftmost Leaf to be found by descending from `node`
-    fn descend_leftmost(&self, node: usize) -> Option<isize> {
+    fn descend_leftmost(&self, node: usize) -> Option<Side<isize>> {
         if let Some(l) = self[node].left {
             if l >= 0 {
                 return self.descend_leftmost(node as usize);
             } else {
-                return Some(l);
+                return Some(Left(l));
             }
         }
         if let Some(r) = self[node].right {
             if r >= 0 {
                 return self.descend_leftmost(node as usize);
             } else {
-                return Some(r);
+                return Some(Left(r));
             }
         }
         panic!(".descend_leftmost: Node does not have children")
     }
 
     /// Try to return the rightmost Leaf to be found by descending from `node`
-    fn descend_rightmost(&self, node: usize) -> Option<isize> {
+    fn descend_rightmost(&self, node: usize) -> Option<Side<isize>> {
         if let Some(r) = self[node].right {
             if r >= 0 {
                 return self.descend_rightmost(node as usize);
             } else {
-                return Some(r);
+                return Some(Right(r));
             }
         }
         if let Some(l) = self[node].left {
             if l >= 0 {
                 return self.descend_rightmost(node as usize);
             } else {
-                return Some(l);
+                return Some(Right(l));
             }
         }
         panic!(".descend_rightmost: Node does not have children")
@@ -836,14 +862,67 @@ impl DynamicBitVector {
         // first, find neighboring child.
         if let Some(neighbor) = self.closest_neighbor_leaf(leaf) {
             // neighbor is leaf.
-            self.merge_leafs(leaf, neighbor);
+            if (self[neighbor.either_into::<isize>()].nums as u32) <= { 3 * LeafValue::BITS / 4 } {
+                self.merge_leafs(leaf, neighbor);
+            } else {
+                todo!("steal bits")
+            }
             // TODO: update parent `nums` and `ones` if left child
         }
         // no neighbor exists. Cannot merge, but that's ok too
     }
 
-    fn merge_leafs(&mut self, leaf1: isize, leaf2: isize) {
-        todo!(".merge_leafs {}", self)
+    /// It's expected that `small_leaf` has size `<= 1/4 LeafValue::BITS`, and
+    /// size of `merge_or_steal_into` is unknown.
+    fn merge_leafs(&mut self, small_leaf: isize, merge_or_steal_into: Side<isize>) {
+        let leaf = self[small_leaf].clone();
+        match merge_or_steal_into {
+            Left(l) => self[l].extend_from(leaf),
+            Right(r) => self[r].prepend(leaf),
+        };
+        // remove leaf from memory
+        self.swap_remove_leaf(small_leaf);
+
+        // TODO: propagate information on deletion
+        todo!("propagate information on deletion")
+    }
+
+    /// Remove Leaf with given index `leaf`. Swaps with currently last in `self.leafs` and updates
+    /// the child index of the parent of the swapped Leaf.
+    pub fn swap_remove_leaf(&mut self, leaf: isize) {
+        match self.get_leaf_side((self.leafs.len() - 1) as isize) {
+            Left(p) => {
+                self[p].left = Some(leaf);
+                self.leafs.swap_remove((-leaf) as usize);
+            }
+            Right(p) => {
+                self[p].right = Some(leaf);
+                self.leafs.swap_remove((-leaf) as usize);
+            }
+        }
+    }
+
+    /// Remove Node with given index `node`. Swaps with currently last Node and updates its parent
+    /// index for the swapped child.
+    pub fn swap_remove_node(&mut self, node: usize) {
+        // self.nodes.swap_delete(node)
+        match self.get_node_side(self.nodes.len() - 1) {
+            Some(Left(p)) => {
+                // last node is left child of `p`. update parent reference and delete
+                self[p].left = Some(node as isize);
+                self.nodes.swap_remove(node);
+            }
+            Some(Right(p)) => {
+                // last node is right child of `p`. update parent reference and delete
+                self[p].right = Some(node as isize);
+                self.nodes.swap_remove(node);
+            }
+            None => {
+                // node doesn't have parent => it's the root!
+                self.root = node;
+                self.nodes.swap_remove(node);
+            }
+        }
     }
 
     /// Flip bit at position `index`
@@ -945,6 +1024,39 @@ impl DynamicBitVector {
                 self.select_leaf(left_id, n, true)
             }
         }
+    }
+
+    /// Given Leaf `child`, return side on parent and parent index
+    pub fn get_leaf_side(&self, child: isize) -> Side<usize> {
+        let parent = self[child].parent;
+        if let Some(l) = self[parent].left {
+            if l == child {
+                return Left(parent);
+            }
+        }
+        if let Some(r) = self[parent].right {
+            if r == child {
+                return Right(parent);
+            }
+        }
+        panic!("leaf L{child} is not child of supposed parent N{parent}")
+    }
+
+    /// Given Node `child`, return side on parent and parent index
+    pub fn get_node_side(&self, child: usize) -> Option<Side<usize>> {
+        if let Some(parent) = self[child as usize].parent {
+            if let Some(l) = self[parent].left {
+                if l == child as isize {
+                    return Some(Left(parent));
+                }
+            }
+            if let Some(r) = self[parent].right {
+                if r == child as isize {
+                    return Some(Right(parent));
+                }
+            }
+        }
+        panic!("asked side of root")
     }
 
     /// Capacity used in left subtree

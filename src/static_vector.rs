@@ -20,27 +20,25 @@ impl Index<usize> for SBitVec {
 }
 
 impl SBitVec {
+    fn new() -> Self {
+        SBitVec(Vec::new())
+    }
+
     fn append(mut self, bit: bool) {
         self.0[1] = 0;
     }
 }
 
-impl traits::StaticBitVec for SBitVec {
-    type Intern = u64;
-
-    fn new() -> Self {
-        SBitVec(Vec::new())
-    }
-
-    fn access(self, i: usize) -> bool {
-        self[i]
-    }
-
-    fn rank(&self, bit: bool, i: usize) -> usize {
-        todo!()
-    }
-
-    fn select(&self, bit: bool, i: usize) -> usize {
-        todo!()
-    }
-}
+// impl traits::StaticBitVec for SBitVec {
+//     fn access(self, i: usize) -> bool {
+//         self[i]
+//     }
+//
+//     fn rank(&self, bit: bool, i: usize) -> usize {
+//         todo!()
+//     }
+//
+//     fn select(&self, bit: bool, i: usize) -> usize {
+//         todo!()
+//     }
+// }

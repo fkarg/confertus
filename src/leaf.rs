@@ -1,6 +1,9 @@
-use crate::traits;
+use crate::traits::*;
 use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
+use either::{Left, Right};
 use std::fmt;
+
+type Side<T> = either::Either<T, T>;
 
 /// Container type used to contain bits in [`Leaf`]. Sensible options are [`u64`] and [`u128`].
 /// Might be replaced with custom implementation featuring higher bit container size later (e.g.
@@ -77,6 +80,11 @@ impl Leaf {
         (self.value >> index) & 1 == 1
     }
 
+    /// Return full internal bit container
+    pub fn values(&self) -> LeafValue {
+        self.value
+    }
+
     /// Appends bit to the end of `self.value`.
     ///
     /// # Errors
@@ -123,6 +131,7 @@ impl Leaf {
     /// - `index < LeafValue::BITS`
     /// - `index <= self.nums`
     pub unsafe fn insert_unchecked(&mut self, index: usize, bit: bool) {
+        // results in "attempt to subtract with overflow". debug sometime
         let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32); // in- or excluding index here?
         let rmask = LeafValue::MAX >> (index as u32);
         self.value =
@@ -170,9 +179,9 @@ impl Leaf {
     /// runtime complexity: O(1)
     pub fn rank(&self, bit: bool, index: usize) -> usize {
         if bit {
-            self.value.rotate_right(index as u32).count_ones() as usize
+            (self.value >> index as u32).count_ones() as usize
         } else {
-            (!self.value).rotate_right(index as u32).count_ones() as usize
+            ((!self.value) >> index as u32).count_ones() as usize
         }
     }
 
@@ -206,7 +215,7 @@ impl Leaf {
         //     _tzcnt_u64(_pdep_u64(1 << n, (array >> 64) as u64)) as usize + 64
         // }
 
-        // yes, comment / uncomment ... no conditional compilation possible
+        // yes, comment / uncomment ... no idea how to do conditional compilation
     }
 
     /// Return index of `n`-th `bit`-value in `self.value`
@@ -234,7 +243,6 @@ impl Leaf {
             }
             panic!("`n`-th `bit`-value not found in this Leaf.")
         }
-        // todo!(".select {:?}", self);
     }
 
     /// Flip bit at position `index`
@@ -270,9 +278,31 @@ impl Leaf {
         self.nums -= (LeafValue::BITS / 2) as u8;
         ret >> (LeafValue::BITS / 2)
     }
+
+    /// Extend LeafValue container with values from other Leaf. Append other values to end.
+    pub fn extend_from(&mut self, ref leaf: Leaf) {
+        self.value |= leaf.values() << leaf.nums();
+        self.nums += leaf.nums() as u8;
+    }
+
+    /// Prepend other values to existing values in LeafValue container. Current values are moved
+    /// later.
+    pub fn prepend(&mut self, ref leaf: Leaf) {
+        self.value <<= leaf.nums();
+        self.value |= leaf.values();
+        self.nums += leaf.nums() as u8;
+    }
+
+    /// Take about half of this Leaf's values and return them in a
+    pub fn steal(&mut self) -> Side<Leaf> {
+        todo!()
+    }
 }
 
-impl traits::Dot for Leaf {
+// impl traits::StaticBitVec for Leaf {
+// }
+
+impl Dot for Leaf {
     fn dotviz(&self, self_id: isize) -> String {
         format!(
             "L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n",
