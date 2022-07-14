@@ -51,6 +51,8 @@ impl fmt::Debug for Leaf {
 }
 
 impl Leaf {
+    // CONSTRUCTORS
+
     /// Constructs a new, empty `Leaf` with parent `parent`.
     #[inline]
     pub fn new(parent: usize) -> Self {
@@ -71,6 +73,8 @@ impl Leaf {
         }
     }
 
+    // ACCESS
+
     /// Access bit value at position `index`
     ///
     /// # Panics
@@ -84,6 +88,8 @@ impl Leaf {
     pub fn values(&self) -> LeafValue {
         self.value
     }
+
+    // PUSH
 
     /// Appends bit to the end of `self.value`.
     ///
@@ -110,6 +116,8 @@ impl Leaf {
         self.value |= (bit as LeafValue) << self.nums;
         self.nums += 1;
     }
+
+    // INSERT
 
     /// Insert `bit` at position `index` in [`Leaf`].
     ///
@@ -139,6 +147,8 @@ impl Leaf {
         self.nums += 1;
     }
 
+    // DELETE
+
     /// Remove bit value at position `index`
     ///
     /// # Errors
@@ -166,6 +176,8 @@ impl Leaf {
         self.nums -= 1;
     }
 
+    // ONES
+
     /// Returns number on-bits in `self.values`
     ///
     /// runtime complexity: O(1)
@@ -173,6 +185,16 @@ impl Leaf {
     pub fn ones(&self) -> usize {
         self.value.count_ones() as usize
     }
+
+    // NUMS
+
+    /// Return used capacity `self.nums`
+    #[inline]
+    pub fn nums(&self) -> usize {
+        self.nums.into()
+    }
+
+    // RANK
 
     /// Returns number of `bit`-values up to `index` in `self.value`
     ///
@@ -184,6 +206,8 @@ impl Leaf {
             ((!self.value) >> index as u32).count_ones() as usize
         }
     }
+
+    // SELECT
 
     /// ```text
     /// Algorithm for determining the position of the jth 1 in a machine word.
@@ -245,6 +269,8 @@ impl Leaf {
         }
     }
 
+    // FLIP
+
     /// Flip bit at position `index`
     ///
     /// runtime complexity: O(1)
@@ -253,11 +279,7 @@ impl Leaf {
         self.value ^= 1 << index;
     }
 
-    /// Return used capacity `self.nums`
-    #[inline]
-    pub fn nums(&self) -> usize {
-        self.nums.into()
-    }
+    // LENGTH
 
     /// Return used length of `self.value` (== `self.nums`)
     #[inline]
@@ -271,15 +293,41 @@ impl Leaf {
         self.nums == 0
     }
 
-    /// Return half of `Leaf`-value. Useful for fully inserting in newly created leaf right after.
-    pub fn split(&mut self) -> LeafValue {
+    // SPLIT
+
+    /// Return full second half of `Leaf`-values, and remove them from `self`, to be inserted to
+    /// a Leaf right of `self`.
+    pub fn split_to_right(&mut self) -> LeafValue {
+        // save the second/left half of self.value temporarily. zero out the rest.
         let ret = self.value.rotate_right(LeafValue::BITS / 2) << (LeafValue::BITS / 2);
-        self.value >>= LeafValue::BITS / 2;
-        self.nums -= (LeafValue::BITS / 2) as u8;
+        // keep first half of self.value, zero out the others.
+        self.value = (self.value << (LeafValue::BITS / 2)) >> (LeafValue::BITS / 2);
+        // Size is now reduced to exactly half size.
+        self.nums = (LeafValue::BITS / 2) as u8;
+        // return second half shifted to the right.
         ret >> (LeafValue::BITS / 2)
     }
 
-    /// Extend LeafValue container with values from other Leaf. Append other values to end.
+    // MERGE
+
+    /// Extend LeafValue container with given values on given side by `num`.
+    ///
+    /// `Left` side means that values are originally of lower index than current leaf, thus
+    /// inserting them to the beginning.
+    ///
+    /// `Right` side means that values are originally of higher index than current leaf, thus
+    /// inserting them at the end.
+    #[inline]
+    pub fn extend(&mut self, values: Side<LeafValue>, nums: u8) {
+        match values {
+            Right(v) => self.extend_from(Leaf::create(0, v, nums)),
+            Left(v) => self.prepend(Leaf::create(0, v, nums)),
+        }
+    }
+
+    /// Extend LeafValue container with values from other Leaf with originally higher index.
+    /// Appends new values to end.
+    #[inline]
     pub fn extend_from(&mut self, ref leaf: Leaf) {
         self.value |= leaf.values() << leaf.nums();
         self.nums += leaf.nums() as u8;
@@ -287,20 +335,13 @@ impl Leaf {
 
     /// Prepend other values to existing values in LeafValue container. Current values are moved
     /// later.
+    #[inline]
     pub fn prepend(&mut self, ref leaf: Leaf) {
         self.value <<= leaf.nums();
         self.value |= leaf.values();
         self.nums += leaf.nums() as u8;
     }
-
-    /// Take about half of this Leaf's values and return them in a
-    pub fn steal(&mut self) -> Side<Leaf> {
-        todo!()
-    }
 }
-
-// impl traits::StaticBitVec for Leaf {
-// }
 
 impl Dot for Leaf {
     fn dotviz(&self, self_id: isize) -> String {
