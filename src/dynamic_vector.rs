@@ -385,24 +385,45 @@ impl DynamicBitVector {
     /// # Arguments
     /// * `node: usize` - begin retracing here, first to get updated is parent of `node`
     /// * `diff: i8` - difference value to update `rank` of parents with
-    pub fn retrace(&mut self, node: usize, diff: i8) {
+    pub fn retrace(&mut self, node: usize, depth_change: i8) {
         if self[node].rank == 0 {
             // node/tree is balanced here, no propagation necessary
             return;
         }
-        // first, find parent
-        if let Some(parent) = self[node].parent {
-            // TODO: diff sign depends on side the update is coming from ... argh
-            self[parent].rank += diff;
-            if i8::abs(self[parent].rank) == 2 {
-                // we can now rebalance, and don't need to continue tracing
-                self.rebalance(node, parent);
-                return;
-            }
-            // propagate to parent
-            self.retrace(parent, diff);
+
+        // find out side and parent, update parent accordingly, ascend
+        match self.get_node_side(node) {
+            Some(Right(p)) => {
+                self[p].rank += depth_change;
+                self.check_rebalance(node, p, depth_change);
+            },
+            Some(Left(p)) => {
+                self[p].rank -= depth_change;
+                self.check_rebalance(node, p, depth_change);
+            },
+            None => {}, // found root, we're done
         }
-        // else: found root, we're done
+        // if let Some(parent) = self[node].parent {
+        //     // TODO: diff sign depends on side the update is coming from ... argh
+        //     self[parent].rank += diff;
+        //     if i8::abs(self[parent].rank) == 2 {
+        //         // we can now rebalance, and don't need to continue tracing
+        //         self.rebalance(node, parent);
+        //         return;
+        //     }
+        //     // propagate to parent
+        //     self.retrace(parent, diff);
+        // }
+    }
+
+    #[inline]
+    fn check_rebalance(&mut self, node: usize, parent: usize, depth_change: i8) {
+        if i8::abs(self[parent].rank) == 2 {
+            // we can now rebalance, and don't need to continue tracing
+            self.rebalance(node, parent);
+            return;
+        }
+        self.retrace(parent, depth_change);
     }
 
     /// Left rotation of [`Node`]s `x` and `z`.
@@ -1026,6 +1047,16 @@ impl DynamicBitVector {
         }
     }
 
+    /// Given some Child `child`, return side on parent and parent index
+    #[inline]
+    pub fn get_side(&self, child: isize) -> Option<Side<usize>> {
+        if child >= 0 {
+            self.get_node_side(child as usize)
+        } else {
+            Some(self.get_leaf_side(child))
+        }
+    }
+
     /// Given Leaf `child`, return side on parent and parent index
     pub fn get_leaf_side(&self, child: isize) -> Side<usize> {
         let parent = self[child].parent;
@@ -1056,7 +1087,7 @@ impl DynamicBitVector {
                 }
             }
         }
-        panic!("asked side of root")
+        None
     }
 
     /// Capacity used in left subtree
