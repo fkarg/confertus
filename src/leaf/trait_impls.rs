@@ -1,6 +1,5 @@
-use crate::traits::*;
 use super::*;
-
+use crate::traits::*;
 
 impl Dot for Leaf {
     fn dotviz(&self, self_id: isize) -> String {
@@ -12,7 +11,6 @@ impl Dot for Leaf {
         //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
     }
 }
-
 
 /// Debug formatting is of format `Leaf[P: <{self.parent}>, nums {self.nums}, value {self.value in
 /// binary representation}]`
@@ -62,7 +60,6 @@ impl StaticBitVec for Leaf {
     fn values(&self) -> Self::Intern {
         self.value
     }
-
 }
 
 /// Provide Dynamic Bit Vector functionality via [`Leaf`] on underlying container and forwarded

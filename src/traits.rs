@@ -96,16 +96,21 @@ pub trait Dot {
 }
 
 /// Trait to get instance bit size for different structs
-pub trait BitSize {
+pub trait BitSize: Sized {
     /// Return total number of bits used by Type
-    fn bitsize(&self) -> usize
-    where
-        Self: Sized,
-    {
+    fn bitsize(&self) -> usize {
         std::mem::size_of::<Self>()
     }
 
-    /// Return total number of bits used by objects managed by structures. Includes all elements on
-    /// different areas of heap.
-    fn bitsize_full(&self) -> usize;
+    /// Return total number of bits allocated by objects managed by structures. Includes all
+    /// elements on different areas of heap.
+    fn bitsize_full(&self) -> usize {
+        self.bitsize()
+    }
+
+    /// Return total number of used bits (fewer than allocated) by objects managed by structures.
+    /// Includes all elements on different areas of heap.
+    fn bitsize_used(&self) -> usize {
+        self.bitsize_full()
+    }
 }

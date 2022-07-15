@@ -29,7 +29,6 @@ pub struct Leaf {
     pub nums: u8, // realistically below u128::BITS, so u8::MAX = 255 is sufficient. // 1 byte
 }
 
-
 impl Leaf {
     // CONSTRUCTORS
 

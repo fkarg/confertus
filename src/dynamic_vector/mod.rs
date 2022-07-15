@@ -1,7 +1,7 @@
 pub use super::leaf::*;
 pub use super::node::*;
 use crate::commands;
-use crate::traits::{Dot, StaticBitVec, DynBitVec};
+use crate::traits::{Dot, DynBitVec, StaticBitVec};
 use either;
 use either::{Left, Right};
 use std::fmt;
@@ -558,35 +558,34 @@ impl DynamicBitVector {
     // INSERT
 
     /// Handle inserting `bit` at position `index` in given `leaf`
-    fn insert_leaf(&mut self, leaf: isize, index: usize, bit: bool) {
+    fn insert_leaf(&mut self, leaf: isize, index: usize, bit: bool) -> Result<(), &'static str> {
         // check for leaf full, split, traverse, rebalance, insert if true.
         if self[leaf].nums as u32 >= LeafValue::BITS {
             let node = self.split_leaf(leaf);
-            self.insert_node(node, index, bit);
+            self.insert_node(node, index, bit)?;
         } else {
-            // since we already checked size of `nums`
-            unsafe { self[leaf].insert_unchecked(index, bit) };
-            println!("unchecked insert of {bit} at {index}");
+            self[leaf].insert(index, bit)?;
         }
+        Ok(())
     }
 
     /// Handle inserting `bit` at position `index` in given `node`
-    fn insert_node(&mut self, node: usize, index: usize, bit: bool) {
+    fn insert_node(&mut self, node: usize, index: usize, bit: bool) -> Result<(), &'static str> {
         // update `nums` and `ones` values during descent
         if self[node].nums <= index {
             // enter right side
             if let Some(right_id) = self[node].right {
                 if right_id >= 0 {
-                    self.insert_node(right_id as usize, index - self[node].nums, bit)
+                    self.insert_node(right_id as usize, index - self[node].nums, bit)?;
                 } else {
                     // leaf
-                    self.insert_leaf(right_id, index - self[node].nums, bit)
+                    self.insert_leaf(right_id, index - self[node].nums, bit)?;
                 }
             } else {
                 // create right side leaf and insert
                 let leaf_id = self.create_right_leaf(node);
                 // even retracing won't disturb order
-                self.insert_leaf(leaf_id, index - self[node].nums, bit);
+                self.insert_leaf(leaf_id, index - self[node].nums, bit)?;
             }
         } else {
             // enter left side
@@ -596,12 +595,13 @@ impl DynamicBitVector {
                 self[node].ones += 1;
             }
             if left_id >= 0 {
-                self.insert_node(left_id as usize, index, bit)
+                self.insert_node(left_id as usize, index, bit)?;
             } else {
                 // leaf
-                self.insert_leaf(left_id, index, bit)
+                self.insert_leaf(left_id, index, bit)?;
             }
         }
+        Ok(())
     }
 
     /// Create [`Leaf`] as right child of `node`, returns id of newly created Leaf.

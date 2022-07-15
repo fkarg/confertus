@@ -2,11 +2,11 @@
 #![allow(unused_imports)]
 
 use super::dynamic_vector::DynamicBitVector;
+use crate::traits::{DynBitVec, StaticBitVec};
 use std::fs::{write, File, OpenOptions};
 use std::io::stdin;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
-use crate::traits::{StaticBitVec, DynBitVec};
 
 /// Read large files line by line in Rust
 /// Efficient (cache) implementations to read file line-by-line
@@ -22,24 +22,36 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-pub fn insert(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
+// pub fn execute_mod(&
+
+// pub fn insert(mut vec: DynamicBitVector, command: Vec<&str>) -> Result<DynamicBitVector, &str> {
+pub fn insert(
+    mut vec: DynamicBitVector,
+    command: Vec<&str>,
+) -> Result<DynamicBitVector, &'static str> {
     let index = command[1].parse::<usize>().unwrap();
     // let bit = command[2].parse::<bool>().unwrap();
     let bit = command[2] != "0";
-    vec.insert(index, bit);
-    vec
+    vec.insert(index, bit)?;
+    Ok(vec)
 }
 
-pub fn delete(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
+pub fn delete(
+    mut vec: DynamicBitVector,
+    command: Vec<&str>,
+) -> Result<DynamicBitVector, &'static str> {
     let index = command[1].parse::<usize>().unwrap();
-    vec.delete(index);
-    vec
+    vec.delete(index)?;
+    Ok(vec)
 }
 
-pub fn flip(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
+pub fn flip(
+    mut vec: DynamicBitVector,
+    command: Vec<&str>,
+) -> Result<DynamicBitVector, &'static str> {
     let index = command[1].parse::<usize>().unwrap();
     vec.flip(index);
-    vec
+    Ok(vec)
 }
 
 pub fn rank(mut vec: DynamicBitVector, command: Vec<&str>) -> (usize, DynamicBitVector) {
@@ -67,7 +79,7 @@ where
 
 /// Appending `text` to existing file with `filename` after newline. Creates file if it does not
 /// exist yet.
-pub fn append_file<P>(filename: P, val: usize) -> std::io::Result<()>
+pub fn append_file<P>(filename: P, val: usize) -> Result<(), &'static str>
 where
     P: AsRef<Path>,
 {
@@ -77,9 +89,11 @@ where
         .open(filename)
         .unwrap();
 
-    // file.write_all(b"to append");
-    // or
-    write!(file, "\n{}", val)
+    // write!(file, "\n{}", val).map_err(|e| e.to_string())
+    match write!(file, "\n{}", val) {
+        Ok(o) => Ok(o),
+        Err(e) => Err("Errored appending to file"),
+    }
 }
 
 pub fn wait_continue() {

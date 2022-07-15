@@ -29,7 +29,7 @@ use std::time::{Duration, Instant};
 /// - [ ] Balanced Parenthesis
 /// - [ ] Extending LeafValue container
 /// - [ ] BP with Range-Min-Max-Tree
-fn main() -> Result<(), std::io::Error> {
+fn main() -> Result<(), &'static str> {
     // time measured and duration with nanosecond precision
     let mut time_total: Duration = Duration::from_millis(0);
     let mut last_timestamp_cont: Instant = Instant::now();
@@ -70,7 +70,7 @@ fn main() -> Result<(), std::io::Error> {
                 let mut rank;
                 let mut sel;
                 println!("{:?}", idx);
-                for line in lines {
+                for (i, line) in lines.enumerate() {
                     if idx > 0 {
                         match line.as_ref().map(String::as_ref) {
                             Ok("0") => dbv.push(false),
@@ -84,15 +84,14 @@ fn main() -> Result<(), std::io::Error> {
                         println!("{:?}", command);
                         // execute vector commands
                         match command[0] {
-                            // "insert" => println!("inserting ..."),
                             "insert" => {
-                                dbv = commands::insert(dbv, command);
+                                dbv = commands::insert(dbv, command)?;
                             }
                             "delete" => {
-                                dbv = commands::delete(dbv, command);
+                                dbv = commands::delete(dbv, command)?;
                             }
                             "flip" => {
-                                dbv = commands::flip(dbv, command);
+                                dbv = commands::flip(dbv, command)?;
                             }
                             "rank" => {
                                 (rank, dbv) = commands::rank(dbv, command);
@@ -106,7 +105,11 @@ fn main() -> Result<(), std::io::Error> {
                                 commands::append_file(&config.file_out, sel)?;
                                 last_timestamp_cont = Instant::now();
                             }
-                            _ => panic!("unrecognized command in file"),
+                            _ => panic!(
+                                "unrecognized command in file {} at line {i}: {}",
+                                config.file_out,
+                                command.join(" ")
+                            ),
                         }
                     }
                 }

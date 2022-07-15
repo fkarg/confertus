@@ -1,5 +1,5 @@
 use crate::traits::*;
-use crate::{BitSize, DynamicBitVector, Leaf, Node, LeafValue};
+use crate::{BitSize, DynamicBitVector, Leaf, LeafValue, Node};
 use std::fmt;
 use std::ops::{Add, Index, IndexMut};
 
@@ -90,7 +90,6 @@ impl IndexMut<isize> for DynamicBitVector {
     }
 }
 
-
 impl StaticBitVec for DynamicBitVector {
     type Intern = Vec<LeafValue>;
 
@@ -126,11 +125,10 @@ impl StaticBitVec for DynamicBitVector {
     }
 }
 
-
 impl DynBitVec for DynamicBitVector {
     #[inline]
     fn insert(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
-        self.insert_node(self.root, index, bit);
+        self.insert_node(self.root, index, bit)?;
         Ok(())
     }
 
