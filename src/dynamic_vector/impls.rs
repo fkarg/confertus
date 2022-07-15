@@ -1,5 +1,5 @@
 use crate::traits::*;
-use crate::{BitSize, DynamicBitVector, Leaf, Node};
+use crate::{BitSize, DynamicBitVector, Leaf, Node, LeafValue};
 use std::fmt;
 use std::ops::{Add, Index, IndexMut};
 
@@ -87,5 +87,68 @@ impl IndexMut<isize> for DynamicBitVector {
             index as usize
         };
         &mut self.leafs[uidx]
+    }
+}
+
+
+impl StaticBitVec for DynamicBitVector {
+    type Intern = Vec<LeafValue>;
+
+    fn ones(&self) -> usize {
+        self[self.root].ones
+    }
+
+    /// Return value at position `index` of `DynamicBitVector`.
+    ///
+    /// # Panics
+    /// If `index` is out of bounds.
+    #[inline]
+    fn access(&self, index: usize) -> bool {
+        self.get_node(self.root, index)
+        // self.apply(Self::get_leaf, index)
+        // self.apply(|s, leaf, index| s.get_leaf(leaf, index), index)
+    }
+
+    #[inline]
+    fn rank(&self, bit: bool, index: usize) -> usize {
+        self.apply_bitop(Self::rank_leaf, Self::rank_add, index, bit)
+    }
+
+    #[inline]
+    fn select(&self, bit: bool, n: usize) -> usize {
+        self.select_node(self.root, n, bit)
+    }
+
+    /// Return full internal container
+    #[inline]
+    fn values(&self) -> Self::Intern {
+        todo!()
+    }
+}
+
+
+impl DynBitVec for DynamicBitVector {
+    #[inline]
+    fn insert(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
+        self.insert_node(self.root, index, bit);
+        Ok(())
+    }
+
+    #[inline]
+    fn delete(&mut self, index: usize) -> Result<(), &'static str> {
+        let leaf = self.apply(Self::delete_leaf, index)?;
+        self.update_left_values(self[leaf].parent, leaf);
+        Ok(())
+    }
+
+    #[inline]
+    fn flip(&mut self, index: usize) {
+        let leaf = self.apply(Self::flip_leaf, index);
+        self.update_left_values(self[leaf].parent, leaf);
+    }
+
+    #[inline]
+    fn nums(&self) -> usize {
+        self[self.root].nums
     }
 }

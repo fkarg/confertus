@@ -6,6 +6,7 @@ use std::fs::{write, File, OpenOptions};
 use std::io::stdin;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
+use crate::traits::{StaticBitVec, DynBitVec};
 
 /// Read large files line by line in Rust
 /// Efficient (cache) implementations to read file line-by-line
@@ -44,14 +45,14 @@ pub fn flip(mut vec: DynamicBitVector, command: Vec<&str>) -> DynamicBitVector {
 pub fn rank(mut vec: DynamicBitVector, command: Vec<&str>) -> (usize, DynamicBitVector) {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
-    let rank = vec.rank(index, bit);
+    let rank = vec.rank(bit, index);
     (rank, vec)
 }
 
 pub fn select(mut vec: DynamicBitVector, command: Vec<&str>) -> (usize, DynamicBitVector) {
     let bit = command[1] != "0";
     let index = command[2].parse::<usize>().unwrap();
-    let sel = vec.select(index, bit);
+    let sel = vec.select(bit, index);
     (sel, vec)
 }
 

@@ -1,5 +1,4 @@
 use crate::traits::*;
-use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
 use either::{Left, Right};
 use std::fmt;
 
@@ -9,17 +8,14 @@ type Side<T> = either::Either<T, T>;
 /// Container type used to contain bits in [`Leaf`]. Sensible options are [`u64`] and [`u128`].
 /// Might be replaced with custom implementation featuring higher bit container size later (e.g.
 /// 4096, or dynamically dependent on total BitVector capacity).
-///
-///
-/// Implementation of [`Leaf::select_pdep`] is dependent on actual type, as the `pdep` command does
-/// not automatically extend to `u128`. I researched conditional compilation for a bit, but
-/// couldn't figure out how to do that.
 pub type LeafValue = u64;
 
 pub const HALF: u32 = LeafValue::BITS / 2;
 
-/// Leaf element of [`crate::DynamicBitVector`]. Next to its value ([`LeafValue`]) and bits used
-/// inside (`nums`), it contains a reference to its parent [`crate::Node`].
+/// Leaf element of [`crate::DynamicBitVector`], particularly implementing the traits
+/// [`StaticBitVec`] and [`DynBitVec`].
+/// Next to its value ([`LeafValue`]) and field for capacity used inside (`nums`), it contains a
+/// reference to its parent [`crate::Node`].
 ///
 /// Instance bit size: 17~25 bytes, depending on `LeafValue`
 #[derive(PartialEq, Clone, Default)]
@@ -28,32 +24,13 @@ pub struct Leaf {
     pub parent: usize, // 8 bytes
     /// container for actual bit values (8-16 byte)
     pub value: LeafValue, // 8~16 bytes
-    /// number of bits used in `value`-container. Below `u128::BITS == 128`, so `u8::MAX = 255` is
+    /// number of bits used in `value`-container. Up to `u128::BITS == 128`, so `u8::MAX = 255` is
     /// sufficient. (1 byte)
     pub nums: u8, // realistically below u128::BITS, so u8::MAX = 255 is sufficient. // 1 byte
 }
 
 
 impl Leaf {
-    // ACCESS
-
-    /// Access bit value at position `index`
-    ///
-    /// # Panics
-    /// If `index` > [`LeafValue::BITS`]
-    #[inline]
-    pub fn access(&self, index: usize) -> bool {
-        (self.value >> index) & 1 == 1
-    }
-
-    /// Return full internal bit container
-    #[inline]
-    pub fn values(&self) -> LeafValue {
-        self.value
-    }
-    // }
-
-    // impl Leaf {
     // CONSTRUCTORS
 
     /// Constructs a new, empty `Leaf` with parent `parent`.
@@ -106,19 +83,6 @@ impl Leaf {
 
     // INSERT
 
-    /// Insert `bit` at position `index` in [`Leaf`].
-    ///
-    /// # Errors
-    /// When Leaf full or `index` out of bounds (`> self.nums` or `>= LeafValue::Bits`).
-    pub fn insert(&mut self, index: usize, bit: bool) -> Result<(), &str> {
-        if self.nums as u32 >= LeafValue::BITS {
-            Err("No free capacity left")
-        } else {
-            unsafe { self.insert_unchecked(index, bit) };
-            Ok(())
-        }
-    }
-
     /// Unchecked version of [`Leaf::insert`]
     ///
     /// # Safety
@@ -137,19 +101,6 @@ impl Leaf {
 
     // DELETE
 
-    /// Remove bit value at position `index`
-    ///
-    /// # Errors
-    /// When Leaf empty or `index` out of bounds (`> self.nums` or `> LeafValue::BITS`).
-    pub fn delete(&mut self, index: usize) -> Result<(), &str> {
-        if self.is_empty() {
-            Err("Tried to delete in empty leaf")
-        } else {
-            unsafe { self.delete_unchecked(index) };
-            Ok(())
-        }
-    }
-
     /// Unchecked version of [`Leaf::delete`]
     ///
     /// # Safety
@@ -162,123 +113,6 @@ impl Leaf {
         let rmask = LeafValue::MAX >> index as u32;
         self.value = ((self.value & lmask) >> 1) | (self.value & rmask);
         self.nums -= 1;
-    }
-
-    // ONES
-
-    /// Returns number on-bits in `self.values`
-    ///
-    /// runtime complexity: O(1)
-    #[inline]
-    pub fn ones(&self) -> usize {
-        self.value.count_ones() as usize
-    }
-
-    // NUMS
-
-    /// Return used capacity `self.nums`
-    #[inline]
-    pub fn nums(&self) -> usize {
-        self.nums.into()
-    }
-
-    // RANK
-
-    /// Returns number of `bit`-values up to `index` in `self.value`
-    ///
-    /// runtime complexity: O(1)
-    pub fn rank(&self, bit: bool, index: usize) -> usize {
-        if bit {
-            (self.value >> index as u32).count_ones() as usize
-        } else {
-            ((!self.value) >> index as u32).count_ones() as usize
-        }
-    }
-
-    // SELECT
-
-    /// ```text
-    /// Algorithm for determining the position of the jth 1 in a machine word.
-    /// ---
-    /// 1: function PTSELECT(x, j)
-    /// 2:     i ← SHIFTLEFT(1, j)
-    /// 3:     p ← PDEP(i, x)
-    /// 4:     return TZCNT(p)
-    /// ```
-    ///
-    /// taken from <https://arxiv.org/pdf/1706.00990.pdf>.
-    ///
-    /// # Safety
-    /// Only available for `x86_64`-based architecuters supporting feature sets `bmi1` and `bmi2`,
-    /// which were both introduced by the fourth-generation intel
-    /// [haswell](https://en.wikipedia.org/wiki/Haswell_(microarchitecture)) architecture nine
-    /// years ago.
-    // #[target_feature(enable = "bmi1")]
-    // #[target_feature(enable = "bmi2")]
-    pub unsafe fn select_pdep(&self, bit: bool, n: usize) -> usize {
-        let array = if bit { self.value } else { !self.value };
-        // self.value is u64
-        _tzcnt_u64(_pdep_u64(1 << n, array as u64)) as usize
-
-        // // self.value is u128
-        // if n < 64 {
-        //     _tzcnt_u64(_pdep_u64(1 << n, array as u64)) as usize
-        // } else {
-        //     _tzcnt_u64(_pdep_u64(1 << n, (array >> 64) as u64)) as usize + 64
-        // }
-
-        // yes, comment / uncomment ... no idea how to do conditional compilation
-    }
-
-    /// Return index of `n`-th `bit`-value in `self.value`
-    ///
-    /// Automatically uses [`Leaf::select_pdep`] if supported by architecture, but has fallback
-    /// implementation if not.
-    pub fn select(&self, bit: bool, n: usize) -> usize {
-        if std::is_x86_feature_detected!("bmi2") && std::is_x86_feature_detected!("bmi1") {
-            unsafe { self.select_pdep(bit, n) }
-        } else {
-            // fallback for non-bmi2-x86 architectures
-
-            // Scan the leaf from left to right and look for the bit of
-            // respective rank.
-            let mut pos = 0;
-            let mut i = n;
-            for shift in (0..LeafValue::BITS).rev() {
-                if (((self.value >> shift) & 1) != 0) == bit {
-                    if i == 0 {
-                        return pos;
-                    }
-                    i -= 1;
-                    pos += 1;
-                }
-            }
-            panic!("`n`-th `bit`-value not found in this Leaf.")
-        }
-    }
-
-    // FLIP
-
-    /// Flip bit at position `index`
-    ///
-    /// runtime complexity: O(1)
-    #[inline]
-    pub fn flip(&mut self, index: usize) {
-        self.value ^= 1 << index;
-    }
-
-    // LENGTH
-
-    /// Return used length of `self.value` (== `self.nums`)
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.nums.into()
-    }
-
-    /// If the Leaf has active values
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.nums == 0
     }
 
     // SPLIT

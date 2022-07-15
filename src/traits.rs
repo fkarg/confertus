@@ -6,18 +6,20 @@ use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
 pub trait StaticBitVec {
     type Intern;
 
-    /// Return number of on-bits in Container
+    /// Return number of on-bits in container
     fn ones(&self) -> usize;
 
     /// Access bit value at position `index`
     fn access(&self, index: usize) -> bool;
 
-    /// Returns number of `bit`-values up to `index` in `self.value`
+    /// Returns number of `bit`-values up to `index` in container
     ///
     /// runtime complexity: O(1) to O(w)
     fn rank(&self, bit: bool, index: usize) -> usize;
 
-    /// Return index of `n`-th `bit`-value in `self.value`
+    /// Return index of `n`-th `bit`-value in container
+    ///
+    /// runtime complexity: O(1) to O(w)
     fn select(&self, bit: bool, n: usize) -> usize;
 
     /// Return full internal container
@@ -25,20 +27,36 @@ pub trait StaticBitVec {
 }
 
 /// Functions associated with dynamic bit vectors.
-pub trait DynBitVec<T: StaticBitVec> {
-    /// `insert i [0|1]` insert a 0 or 1 at the i-th position of the bit vector
-    /// concurrently updates all relevant `ones` and `num` values when traversing to location `i`,
-    /// rebalance if necessary
-    fn insert(self, i: usize, bit: bool);
+pub trait DynBitVec: StaticBitVec {
+    /// Insert `bit` at position `index` in underlying container
+    ///
+    /// runtime complexity: O(1) to O(w)
+    fn insert(&mut self, index: usize, bit: bool) -> Result<(), &'static str>;
 
-    /// `delete i` delete the i-th bit
-    /// concurrently updates all relevant `ones` and `num` values when traversing to location `i`,
-    /// rebalancing if necessary
-    fn delete(self, i: usize);
+    /// Remove bit value at position `index`
+    ///
+    /// runtime complexity: O(1) to O(w)
+    fn delete(&mut self, index: usize) -> Result<(), &'static str>;
 
-    /// `flip i` flip the i-th bit
-    /// updates `ones` and `num` accordingly
-    fn flip(self, i: usize);
+    /// Flip bit at position `index`, updates `ones` and `num` values accordingly
+    ///
+    /// runtime complexity: O(1)
+    fn flip(&mut self, index: usize);
+
+    /// Return used capacity of underlying container
+    fn nums(&self) -> usize;
+
+    /// Return used capacity of underlying container
+    #[inline]
+    fn len(&self) -> usize {
+        self.nums()
+    }
+
+    /// If the Leaf has active values
+    #[inline]
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 
     // /// `bitset  i` sets `i`-th bit to 1
     // /// updates `ones` and `num` accordingly
