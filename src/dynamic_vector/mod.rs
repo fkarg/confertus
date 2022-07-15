@@ -539,17 +539,13 @@ impl DynamicBitVector {
     /// == 2` (would be zero otherwise).
     pub fn rebalance_no_child(&mut self, parent: usize) {
         if let Some(l) = self[parent].left {
-            if l >= 0 {
-                if i8::abs(self[l as usize].rank) == 1 {
-                    self.rebalance(l as usize, parent);
-                }
+            if l >= 0 && i8::abs(self[l as usize].rank) == 1 {
+                self.rebalance(l as usize, parent);
             }
         }
         if let Some(r) = self[parent].right {
-            if r >= 0 {
-                if i8::abs(self[r as usize].rank) == 1 {
-                    self.rebalance(r as usize, parent);
-                }
+            if r >= 0 && i8::abs(self[r as usize].rank) == 1 {
+                self.rebalance(r as usize, parent);
             }
         }
         panic!("Node has no child with |rank| == 1 but achieved |rank| == 2 somehow")
@@ -799,12 +795,12 @@ impl DynamicBitVector {
         let parent = self[small_leaf].parent;
         match merge_or_steal_into {
             Left(l) => {
-                self[l].extend_from(leaf);
+                self[l].extend_from(&leaf);
                 // left child gets removed, increase rank balance towards right
                 self[parent].rank += 1;
             }
             Right(r) => {
-                self[r].prepend(leaf);
+                self[r].prepend(&leaf);
                 // right child gets removed, decrease rank balance towards right
                 self[parent].rank -= 1;
             }

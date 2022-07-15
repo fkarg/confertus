@@ -135,7 +135,7 @@ impl Leaf {
         // save the first/right half of self.value temporarily. zero out the rest.
         let ret = (self.value << HALF) >> HALF;
         // keep second half of self.value, zero out the others.
-        self.value = self.value >> HALF;
+        self.value >>= HALF;
         // Size is now reduced by half size.
         self.nums -= HALF as u8;
         // return first half
@@ -154,15 +154,15 @@ impl Leaf {
     #[inline]
     pub fn extend(&mut self, values: Side<LeafValue>, nums: u8) {
         match values {
-            Right(v) => self.extend_from(Leaf::create(0, v, nums)),
-            Left(v) => self.prepend(Leaf::create(0, v, nums)),
+            Right(v) => self.extend_from(&Leaf::create(0, v, nums)),
+            Left(v) => self.prepend(&Leaf::create(0, v, nums)),
         }
     }
 
     /// Extend LeafValue container with values from other Leaf with originally higher index.
     /// Appends new values to end.
     #[inline]
-    pub fn extend_from(&mut self, ref leaf: Leaf) {
+    pub fn extend_from(&mut self, leaf: &Leaf) {
         self.value |= leaf.values() << leaf.nums();
         self.nums += leaf.nums() as u8;
     }
@@ -170,7 +170,7 @@ impl Leaf {
     /// Prepend other values to existing values in LeafValue container. Current values are moved
     /// later.
     #[inline]
-    pub fn prepend(&mut self, ref leaf: Leaf) {
+    pub fn prepend(&mut self, leaf: &Leaf) {
         self.value <<= leaf.nums();
         self.value |= leaf.values();
         self.nums += leaf.nums() as u8;
