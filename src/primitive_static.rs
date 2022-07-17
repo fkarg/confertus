@@ -1,6 +1,111 @@
 use super::traits::StaticBitVec;
 use core::arch::x86_64::{_pdep_u64, _popcnt64, _tzcnt_u64};
 
+/// So, that one didn't work out as LeafValue, as it still needs to implement bitshifts for various
+/// functionality.
+impl StaticBitVec for bool {
+    type Intern = bool;
+
+    fn ones(&self) -> usize {
+        *self as usize
+    }
+
+    fn access(&self, index: usize) -> bool {
+        assert!(index == 0);
+        *self
+    }
+
+    fn rank(&self, bit: bool, index: usize) -> usize {
+        assert!(index == 0);
+        // actually correct implementation
+        0
+    }
+
+    fn select(&self, bit: bool, n: usize) -> usize {
+        assert!(n == 0);
+        assert!(bit == *self);
+        // not sure if a reasonable implementation is possible?
+        0
+    }
+
+    fn values(&self) -> Self::Intern {
+        *self
+    }
+}
+
+impl StaticBitVec for u8 {
+    type Intern = u8;
+
+    fn ones(&self) -> usize {
+        (*self as u64).ones()
+    }
+
+    fn access(&self, index: usize) -> bool {
+        (*self as u64).access(index)
+    }
+
+    fn rank(&self, bit: bool, index: usize) -> usize {
+        (*self as u64).rank(bit, index)
+    }
+
+    fn select(&self, bit: bool, n: usize) -> usize {
+        (*self as u64).select(bit, n)
+    }
+
+    fn values(&self) -> Self::Intern {
+        *self
+    }
+}
+
+impl StaticBitVec for u16 {
+    type Intern = u16;
+
+    fn ones(&self) -> usize {
+        (*self as u64).ones()
+    }
+
+    fn access(&self, index: usize) -> bool {
+        (*self as u64).access(index)
+    }
+
+    fn rank(&self, bit: bool, index: usize) -> usize {
+        (*self as u64).rank(bit, index)
+    }
+
+    fn select(&self, bit: bool, n: usize) -> usize {
+        (*self as u64).select(bit, n)
+    }
+
+    fn values(&self) -> Self::Intern {
+        *self
+    }
+}
+
+impl StaticBitVec for u32 {
+    type Intern = u32;
+
+    fn ones(&self) -> usize {
+        (*self as u64).ones()
+    }
+
+    fn access(&self, index: usize) -> bool {
+        (*self as u64).access(index)
+    }
+
+    fn rank(&self, bit: bool, index: usize) -> usize {
+        (*self as u64).rank(bit, index)
+    }
+
+    fn select(&self, bit: bool, n: usize) -> usize {
+        (*self as u64).select(bit, n)
+    }
+
+    fn values(&self) -> Self::Intern {
+        *self
+    }
+}
+
+/// hidden abstraction of internal architecture-dependent unsafe implementations
 trait UnsafeBitVec {
     unsafe fn select_internal(&self, bit: bool, n: usize) -> usize;
 
