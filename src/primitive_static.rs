@@ -8,6 +8,7 @@ trait UnsafeBitVec {
 }
 
 impl UnsafeBitVec for u64 {
+    /// Fallback implementation of `select`, not dependent on any specific architecture
     #[cfg(not(all(
         target_arch = "x86_64",
         target_feature = "bmi1",
@@ -29,6 +30,8 @@ impl UnsafeBitVec for u64 {
         panic!("`{n}`-th `bit`-value '{bit}' not found in {self:b}")
     }
 
+    /// Performant implementation of `select` for `x86_64` architectures with `bmi1` and `bmi2`
+    /// features.
     /// ```text
     /// Algorithm for determining the position of the jth 1 in a machine word.
     /// ---
@@ -58,9 +61,9 @@ impl UnsafeBitVec for u64 {
         _tzcnt_u64(_pdep_u64(1 << n, if bit { *self } else { !self })) as usize
     }
 
-    /// Assume `index` to be in the range of `0..63`
+    /// Performant implementation of `rank` for `x86_64` architectures (3 instructions).
     ///
-    /// popcnt is part of the x86_64 architecture, and faster (probably) than `count_ones`.
+    /// Assumes `index` to be in the range of `0..63`.
     #[cfg(target_arch = "x86_64")]
     unsafe fn rank_internal(&self, bit: bool, index: usize) -> usize {
         if bit {
@@ -70,7 +73,7 @@ impl UnsafeBitVec for u64 {
         }
     }
 
-    /// Assume `index` to be in the range of `0..63`
+    /// Fallback implementation of `rank`, not depending on any specific architecture
     #[cfg(not(target_arch = "x86_64"))]
     unsafe fn rank_internal(&self, bit: bool, index: usize) -> usize {
         if bit {
@@ -154,7 +157,7 @@ impl UnsafeBitVec for u128 {
         // self.value is u128, but pdep and tzcnt only exist for u64
         // cast to u64 is expected to be lossy.
         // First, check if `n` is in right or left half of u128
-        let rank = (self as u64).rank_internal(bit, n);
+        let rank = (*self as u64).rank_internal(bit, n);
         if rank >= n {
             _tzcnt_u64(_pdep_u64(1 << n, array as u64)) as usize
         } else {
@@ -303,7 +306,6 @@ mod tests {
         assert_eq!(3u64.select(false, 1), 3);
         assert_eq!(u64::MAX.select(true, 63), 63);
     }
-
 
     /// Test if generated number with specific number of ones really has them
     #[quickcheck]

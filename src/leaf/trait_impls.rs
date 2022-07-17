@@ -16,23 +16,44 @@ impl Dot for Leaf {
 /// binary representation}]`
 impl fmt::Debug for Leaf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if LeafValue::BITS == 64 {
-            write!(
-                f,
-                "Leaf[P: <{:3}>, nums {:2}, value {:#066b}]",
-                self.parent, self.nums, self.value
-            )
-        } else {
+        // descending order of bit sizes, as the higher ones are probably used more often
+        if LeafValue::BITS == 128 {
             write!(
                 f,
                 "Leaf[P: <{:3}>, nums {:3}, value {:#0130b}]",
                 self.parent, self.nums, self.value
             )
+        } else if LeafValue::BITS == 64 {
+            write!(
+                f,
+                "Leaf[P: <{:3}>, nums {:2}, value {:#066b}]",
+                self.parent, self.nums, self.value
+            )
+        } else if LeafValue::BITS == 32 {
+            write!(
+                f,
+                "Leaf[P: <{:3}>, nums {:3}, value {:#034b}]",
+                self.parent, self.nums, self.value
+            )
+        } else if LeafValue::BITS == 16 {
+            write!(
+                f,
+                "Leaf[P: <{:3}>, nums {:3}, value {:#018b}]",
+                self.parent, self.nums, self.value
+            )
+        } else if LeafValue::BITS == 8 {
+            write!(
+                f,
+                "Leaf[P: <{:3}>, nums {:3}, value {:#010b}]",
+                self.parent, self.nums, self.value
+            )
+        } else {
+            unreachable!()
         }
     }
 }
 
-/// Forward Static Bit Vector functionality from container to [`Leaf`]
+/// Forward Static Bit Vector functionality from [`LeafValue`]-container to [`Leaf`]
 impl StaticBitVec for Leaf {
     type Intern = LeafValue;
 
@@ -62,31 +83,37 @@ impl StaticBitVec for Leaf {
     }
 }
 
-/// Provide Dynamic Bit Vector functionality via [`Leaf`] on underlying container and forwarded
-/// [`StaticBitVec`] functionality
+/// Provide Dynamic Bit Vector functionality for [`Leaf`] via underlying container and forwarded
+/// [`StaticBitVec`] functionality.
 impl DynBitVec for Leaf {
     #[inline]
     fn insert(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
-        if self.nums as u32 >= LeafValue::BITS {
-            Err("No free capacity left")
-        } else {
+        if (self.nums as u32) < LeafValue::BITS && index <= self.nums as usize {
             unsafe { self.insert_unchecked(index, bit) };
             Ok(())
+        } else {
+            Err("No free capacity left, or `index > self.nums`")
         }
     }
 
     #[inline]
     fn delete(&mut self, index: usize) -> Result<(), &'static str> {
-        if self.is_empty() {
-            Err("Tried to delete in empty leaf")
-        } else {
+        if !self.is_empty() && index < self.nums as usize {
             unsafe { self.delete_unchecked(index) };
             Ok(())
+        } else if self.is_empty() {
+            Err("Tried to delete in empty leaf")
+        } else {
+            Err("deletion of non-allocated position: `index >= self.nums`")
         }
     }
 
     #[inline]
     fn flip(&mut self, index: usize) {
+        // unchecked:
+        // - index < self.nums
+        // (and, by extension)
+        // - index < LeafValue::BITS
         self.value ^= 1 << index;
     }
 

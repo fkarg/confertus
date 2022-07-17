@@ -95,7 +95,10 @@ pub trait Dot {
     fn dotviz(&self, self_id: isize) -> String;
 }
 
-/// Trait to get instance bit size for different structs
+/// Trait to get instance bit size for different structs.
+// Sizes reasonably exclude the [red zone](https://en.wikipedia.org/wiki/Red_zone_(computing)). If
+// so desired, the (default) red zone can be deactivated via `RUSTFLAGS -C no-redzone=yes`.
+// (is this actually correct?)
 pub trait BitSize: Sized {
     /// Return total number of bits used by Type
     fn bitsize(&self) -> usize {

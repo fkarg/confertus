@@ -42,7 +42,7 @@ impl Leaf {
         }
     }
 
-    /// Cunstructs a new `Leaf` with parent `parent` and
+    /// Cunstructs a new `Leaf` with parent `parent`, container [`LeafValue`] and size `nums`.
     #[inline]
     pub fn create(parent: usize, value: LeafValue, nums: u8) -> Self {
         Leaf {
@@ -72,8 +72,8 @@ impl Leaf {
     /// Unchecked version of [`Leaf::push`]
     ///
     /// # Safety
-    /// Unchecked invariant: used capacity `nums` is less than the total capacity of
-    /// `LeafValue::BITS` bits before push.
+    /// Unchecked invariant:
+    /// - `self.nums < LeafValue::BITS`
     #[inline]
     pub unsafe fn push_unchecked(&mut self, bit: bool) {
         self.value |= (bit as LeafValue) << self.nums;
@@ -86,15 +86,19 @@ impl Leaf {
     ///
     /// # Safety
     /// Unchecked invariants:
-    /// - `index < LeafValue::BITS`
     /// - `index <= self.nums`
+    ///     (and, by extension)
+    /// - `index < LeafValue::BITS`
     pub unsafe fn insert_unchecked(&mut self, index: usize, bit: bool) {
-        // results in "attempt to subtract with overflow". TODO: debug sometime
-        // results in "attempt to shift left with overflow". on insert 0 0 TOOD: debug sometime
-        let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32); // in- or excluding index here?
-        let rmask = LeafValue::MAX >> (index as u32);
+        // results in "attempt to shift left with overflow" in line+4. TODO: debug sometime
+        // probably in left shift with index, but then index is 'broken'?
+        //
+        // shift 'higher' indexed values on the left one to the left, and keep 'lower' indexed
+        // values to the right there.
+        let lmask = LeafValue::MAX.overflowing_shl(index as u32).0; // in- or excluding index here?
+        let rmask = !lmask; // right side mask is just left shift mask with bits flipped
         self.value =
-            (self.value & lmask) | ((bit as LeafValue) << index) | ((self.value & rmask) >> 1);
+            ((self.value & lmask) << 1) | ((bit as LeafValue) << index) | (self.value & rmask);
         self.nums += 1;
     }
 
@@ -104,13 +108,16 @@ impl Leaf {
     ///
     /// # Safety
     /// List of unchecked invariants:
-    /// - `index < LeafValue::BITS`
-    /// - `index < self.nums`
     /// - `self.nums > 0`
+    /// - `index < self.nums`
+    ///     (and, by extension)
+    /// - `index < LeafValue::BITS`
     pub unsafe fn delete_unchecked(&mut self, index: usize) {
-        let lmask = LeafValue::MAX << (LeafValue::BITS - index as u32);
-        let rmask = LeafValue::MAX >> index as u32;
-        self.value = ((self.value & lmask) >> 1) | (self.value & rmask);
+        let lmask = LeafValue::MAX.overflowing_shl(index as u32).0;
+        let rmask = !lmask;
+        // move left mask one more position to the left (to exclude bit to delete), and then move
+        // one position to the right (to overwrite bit to delete).
+        self.value = ((self.value & (lmask << 1)) >> 1) | (self.value & rmask);
         self.nums -= 1;
     }
 
