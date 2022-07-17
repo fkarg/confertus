@@ -195,7 +195,7 @@ impl DynamicBitVector {
             }
         }
         println!(".insert_intermediary_node {}", self);
-        panic!(
+        unreachable!(
             "{} not subtree of current Node (parent {:?}).",
             child_id, parent_id
         );
@@ -548,7 +548,7 @@ impl DynamicBitVector {
                 self.rebalance(r as usize, parent);
             }
         }
-        panic!("Node has no child with |rank| == 1 but achieved |rank| == 2 somehow")
+        unreachable!("Node has no child with |rank| == 1 but achieved |rank| == 2 somehow")
     }
 
     // INSERT
@@ -732,7 +732,7 @@ impl DynamicBitVector {
                 return Some(Left(r));
             }
         }
-        panic!(".descend_leftmost: Node does not have children")
+        unreachable!(".descend_leftmost: Node does not have children")
     }
 
     /// Try to return the rightmost Leaf to be found by descending from `node`
@@ -751,7 +751,7 @@ impl DynamicBitVector {
                 return Some(Right(l));
             }
         }
-        panic!(".descend_rightmost: Node does not have children")
+        unreachable!(".descend_rightmost: Node does not have children")
     }
 
     // MERGE
@@ -948,7 +948,7 @@ impl DynamicBitVector {
                 return Right(parent);
             }
         }
-        panic!("leaf L{child} is not child of supposed parent N{parent}")
+        unreachable!("leaf L{child} is not child of supposed parent N{parent}")
     }
 
     /// Given Node `child`, return side on parent and parent index
