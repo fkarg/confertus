@@ -10,3 +10,9 @@ edition = "2021"
 
 [dependencies]
 either = "1.7.0"
+
+[dev-dependencies]
+pretty_assertions = "1.2.1"
+quickcheck = "1.0.3"
+quickcheck_macros = "1.0.0"
+test-case = "2.1.0"
