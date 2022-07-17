@@ -1,0 +1,388 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/leaf/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../confertus/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../../confertus/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../confertus/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::traits</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">either</span>::{<span class="ident">Left</span>, <span class="ident">Right</span>};
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
+
+<span class="kw">type</span> <span class="ident">Side</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">either::Either</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">T</span><span class="op">&gt;</span>;
+<span class="comment">// type NumSize = u8;</span>
+
+<span class="doccomment">/// Container type used to contain bits in [`Leaf`]. Sensible options are [`u64`] and [`u128`].</span>
+<span class="doccomment">/// Might be replaced with custom implementation featuring higher bit container size later (e.g.</span>
+<span class="doccomment">/// 4096, or dynamically dependent on total BitVector capacity).</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LeafValue</span> <span class="op">=</span> <span class="ident">u64</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HALF</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">LeafValue::BITS</span> <span class="op">/</span> <span class="number">2</span>;
+
+<span class="doccomment">/// Leaf element of [`crate::DynamicBitVector`], particularly implementing the traits</span>
+<span class="doccomment">/// [`StaticBitVec`] and [`DynBitVec`].</span>
+<span class="doccomment">/// Next to its value ([`LeafValue`]) and field for capacity used inside (`nums`), it contains a</span>
+<span class="doccomment">/// reference to its parent [`crate::Node`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Instance bit size: 17~25 bytes, depending on `LeafValue`</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Leaf</span> {
+    <span class="doccomment">/// reference to parent [`crate::Node`] (8 byte)</span>
+    <span class="kw">pub</span> <span class="ident">parent</span>: <span class="ident">usize</span>, <span class="comment">// 8 bytes</span>
+    <span class="doccomment">/// container for actual bit values (8-16 byte)</span>
+    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">LeafValue</span>, <span class="comment">// 8~16 bytes</span>
+    <span class="doccomment">/// number of bits used in `value`-container. Up to `u128::BITS == 128`, so `u8::MAX = 255` is</span>
+    <span class="doccomment">/// sufficient. (1 byte)</span>
+    <span class="kw">pub</span> <span class="ident">nums</span>: <span class="ident">u8</span>, <span class="comment">// realistically below u128::BITS, so u8::MAX = 255 is sufficient. // 1 byte</span>
+}
+
+<span class="kw">impl</span> <span class="ident">Leaf</span> {
+    <span class="comment">// CONSTRUCTORS</span>
+
+    <span class="doccomment">/// Constructs a new, empty `Leaf` with parent `parent`.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">parent</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Leaf</span> {
+            <span class="ident">parent</span>,
+            <span class="ident">value</span>: <span class="number">0</span>,
+            <span class="ident">nums</span>: <span class="number">0</span>,
+        }
+    }
+
+    <span class="doccomment">/// Cunstructs a new `Leaf` with parent `parent`, container [`LeafValue`] and size `nums`.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">parent</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="ident">LeafValue</span>, <span class="ident">nums</span>: <span class="ident">u8</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Leaf</span> {
+            <span class="ident">parent</span>,
+            <span class="ident">value</span>,
+            <span class="ident">nums</span>,
+        }
+    }
+
+    <span class="comment">// PUSH</span>
+
+    <span class="doccomment">/// Appends bit to the end of `self.value`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Errors</span>
+    <span class="doccomment">/// If used capacity `nums` equals `LeafValue::BITS` bits before push (Leaf is full).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">u32::from</span>(<span class="self">self</span>.<span class="ident">nums</span>) <span class="op">&lt;</span> <span class="ident">LeafValue::BITS</span> {
+            <span class="kw">unsafe</span> {
+                <span class="self">self</span>.<span class="ident">push_unchecked</span>(<span class="ident">bit</span>);
+            }
+            <span class="prelude-val">Ok</span>(())
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="string">&quot;tried to push value to full Leaf&quot;</span>)
+        }
+    }
+
+    <span class="doccomment">/// Unchecked version of [`Leaf::push`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// Unchecked invariant:</span>
+    <span class="doccomment">/// - `self.nums &lt; LeafValue::BITS`</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">push_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">|</span><span class="op">=</span> (<span class="ident">bit</span> <span class="kw">as</span> <span class="ident">LeafValue</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">nums</span>;
+        <span class="self">self</span>.<span class="ident">nums</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    }
+
+    <span class="comment">// INSERT</span>
+
+    <span class="doccomment">/// Unchecked version of [`Leaf::insert`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// Unchecked invariants:</span>
+    <span class="doccomment">/// - `index &lt;= self.nums`</span>
+    <span class="doccomment">///     (and, by extension)</span>
+    <span class="doccomment">/// - `index &lt; LeafValue::BITS`</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">insert_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">bit</span>: <span class="ident">bool</span>) {
+        <span class="comment">// results in &quot;attempt to shift left with overflow&quot; in line+4. TODO: debug sometime</span>
+        <span class="comment">// probably in left shift with index, but then index is &#39;broken&#39;?</span>
+        <span class="comment">//</span>
+        <span class="comment">// shift &#39;higher&#39; indexed values on the left one to the left, and keep &#39;lower&#39; indexed</span>
+        <span class="comment">// values to the right there.</span>
+        <span class="kw">let</span> <span class="ident">lmask</span> <span class="op">=</span> <span class="ident">LeafValue::MAX</span>.<span class="ident">overflowing_shl</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="number">0</span>; <span class="comment">// in- or excluding index here?</span>
+        <span class="kw">let</span> <span class="ident">rmask</span> <span class="op">=</span> <span class="op">!</span><span class="ident">lmask</span>; <span class="comment">// right side mask is just left shift mask with bits flipped</span>
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span>
+            ((<span class="self">self</span>.<span class="ident">value</span> <span class="op">&amp;</span> <span class="ident">lmask</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>) <span class="op">|</span> ((<span class="ident">bit</span> <span class="kw">as</span> <span class="ident">LeafValue</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">index</span>) <span class="op">|</span> (<span class="self">self</span>.<span class="ident">value</span> <span class="op">&amp;</span> <span class="ident">rmask</span>);
+        <span class="self">self</span>.<span class="ident">nums</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    }
+
+    <span class="comment">// DELETE</span>
+
+    <span class="doccomment">/// Unchecked version of [`Leaf::delete`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// List of unchecked invariants:</span>
+    <span class="doccomment">/// - `self.nums &gt; 0`</span>
+    <span class="doccomment">/// - `index &lt; self.nums`</span>
+    <span class="doccomment">///     (and, by extension)</span>
+    <span class="doccomment">/// - `index &lt; LeafValue::BITS`</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">delete_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) {
+        <span class="kw">let</span> <span class="ident">lmask</span> <span class="op">=</span> <span class="ident">LeafValue::MAX</span>.<span class="ident">overflowing_shl</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="number">0</span>;
+        <span class="kw">let</span> <span class="ident">rmask</span> <span class="op">=</span> <span class="op">!</span><span class="ident">lmask</span>;
+        <span class="comment">// move left mask one more position to the left (to exclude bit to delete), and then move</span>
+        <span class="comment">// one position to the right (to overwrite bit to delete).</span>
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span> ((<span class="self">self</span>.<span class="ident">value</span> <span class="op">&amp;</span> (<span class="ident">lmask</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>)) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>) <span class="op">|</span> (<span class="self">self</span>.<span class="ident">value</span> <span class="op">&amp;</span> <span class="ident">rmask</span>);
+        <span class="self">self</span>.<span class="ident">nums</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+    }
+
+    <span class="comment">// SPLIT</span>
+
+    <span class="doccomment">/// Return full second/left half of `Leaf`-values, and remove them from `self`, to be inserted</span>
+    <span class="doccomment">/// to a Leaf right of `self`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_to_right</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">LeafValue</span> {
+        <span class="comment">// save the second/left half of self.value temporarily. zero out the rest.</span>
+        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">rotate_right</span>(<span class="ident">HALF</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">HALF</span>;
+        <span class="comment">// keep first half of self.value, zero out the others.</span>
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">value</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">HALF</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">HALF</span>;
+        <span class="comment">// Size is now reduced to exactly half size.</span>
+        <span class="self">self</span>.<span class="ident">nums</span> <span class="op">=</span> <span class="ident">HALF</span> <span class="kw">as</span> <span class="ident">u8</span>;
+        <span class="comment">// return second half shifted to the right.</span>
+        <span class="ident">ret</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">HALF</span>
+    }
+
+    <span class="doccomment">/// Return full first/right half of `Leaf`-values, and remove them from `self`, to be inserted</span>
+    <span class="doccomment">/// to a Leaf left of `self`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_to_left</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">LeafValue</span> {
+        <span class="comment">// save the first/right half of self.value temporarily. zero out the rest.</span>
+        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">value</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">HALF</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">HALF</span>;
+        <span class="comment">// keep second half of self.value, zero out the others.</span>
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="ident">HALF</span>;
+        <span class="comment">// Size is now reduced by half size.</span>
+        <span class="self">self</span>.<span class="ident">nums</span> <span class="op">-</span><span class="op">=</span> <span class="ident">HALF</span> <span class="kw">as</span> <span class="ident">u8</span>;
+        <span class="comment">// return first half</span>
+        <span class="ident">ret</span>
+    }
+
+    <span class="comment">// MERGE / EXTEND</span>
+
+    <span class="doccomment">/// Extend LeafValue container with given values on given side by `num`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `Left` side means that values are originally of lower index than current leaf, thus</span>
+    <span class="doccomment">/// inserting them to the beginning.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `Right` side means that values are originally of higher index than current leaf, thus</span>
+    <span class="doccomment">/// inserting them at the end.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extend</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">values</span>: <span class="ident">Side</span><span class="op">&lt;</span><span class="ident">LeafValue</span><span class="op">&gt;</span>, <span class="ident">nums</span>: <span class="ident">u8</span>) {
+        <span class="kw">match</span> <span class="ident">values</span> {
+            <span class="ident">Right</span>(<span class="ident">v</span>) =&gt; <span class="self">self</span>.<span class="ident">extend_from</span>(<span class="kw-2">&amp;</span><span class="ident">Leaf::create</span>(<span class="number">0</span>, <span class="ident">v</span>, <span class="ident">nums</span>)),
+            <span class="ident">Left</span>(<span class="ident">v</span>) =&gt; <span class="self">self</span>.<span class="ident">prepend</span>(<span class="kw-2">&amp;</span><span class="ident">Leaf::create</span>(<span class="number">0</span>, <span class="ident">v</span>, <span class="ident">nums</span>)),
+        }
+    }
+
+    <span class="doccomment">/// Extend LeafValue container with values from other Leaf with originally higher index.</span>
+    <span class="doccomment">/// Appends new values to end.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extend_from</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">leaf</span>: <span class="kw-2">&amp;</span><span class="ident">Leaf</span>) {
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">|</span><span class="op">=</span> <span class="ident">leaf</span>.<span class="ident">values</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">leaf</span>.<span class="ident">nums</span>();
+        <span class="self">self</span>.<span class="ident">nums</span> <span class="op">+</span><span class="op">=</span> <span class="ident">leaf</span>.<span class="ident">nums</span>() <span class="kw">as</span> <span class="ident">u8</span>;
+    }
+
+    <span class="doccomment">/// Prepend other values to existing values in LeafValue container. Current values are moved</span>
+    <span class="doccomment">/// later.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepend</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">leaf</span>: <span class="kw-2">&amp;</span><span class="ident">Leaf</span>) {
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span> <span class="ident">leaf</span>.<span class="ident">nums</span>();
+        <span class="self">self</span>.<span class="ident">value</span> <span class="op">|</span><span class="op">=</span> <span class="ident">leaf</span>.<span class="ident">values</span>();
+        <span class="self">self</span>.<span class="ident">nums</span> <span class="op">+</span><span class="op">=</span> <span class="ident">leaf</span>.<span class="ident">nums</span>() <span class="kw">as</span> <span class="ident">u8</span>;
+    }
+}
+
+<span class="kw">mod</span> <span class="ident">trait_impls</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span>;
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="confertus" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
+</body></html>

@@ -75,49 +75,120 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
-</pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StaticBitVec</span> {
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::arch::x86_64</span>::{<span class="ident">_pdep_u64</span>, <span class="ident">_tzcnt_u64</span>};
+
+<span class="doccomment">/// Functions associated with static bit vectors. Not to be confused with specific containers such</span>
+<span class="doccomment">/// as [`u64`], [`u128`] or particulary [`Leaf`](crate::Leaf), which additionally tracks the number</span>
+<span class="doccomment">/// of used bits, `nums`, and a parent [`Node`](crate::Node).</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StaticBitVec</span> {
     <span class="kw">type</span> <span class="ident">Intern</span>;
 
-    <span class="doccomment">/// Constructor</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Return number of on-bits in container</span>
+    <span class="kw">fn</span> <span class="ident">ones</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span>;
 
-    <span class="doccomment">/// `access i` return bit value at position i</span>
-    <span class="kw">fn</span> <span class="ident">access</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span>;
+    <span class="doccomment">/// Access bit value at position `index`</span>
+    <span class="kw">fn</span> <span class="ident">access</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span>;
 
-    <span class="doccomment">/// `rank [0|1] i` return rank0 or rank1 up to position i</span>
-    <span class="doccomment">/// Maschinenbefehl: popcount (?)</span>
-    <span class="kw">fn</span> <span class="ident">rank</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
-        <span class="macro">todo!</span>()
-    }
+    <span class="doccomment">/// Returns number of `bit`-values up to `index` in container</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// runtime complexity: O(1) to O(w)</span>
+    <span class="kw">fn</span> <span class="ident">rank</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span>;
 
-    <span class="doccomment">/// `select [0|1] i` return select0 or select1 for the i-th occurrence</span>
-    <span class="kw">fn</span> <span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
-        <span class="macro">todo!</span>()
-    }
+    <span class="doccomment">/// Return index of `n`-th `bit`-value in container</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// runtime complexity: O(1) to O(w)</span>
+    <span class="kw">fn</span> <span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span>;
+
+    <span class="doccomment">/// Return full internal container</span>
+    <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Intern</span>;
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DynBitVec</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">StaticBitVec</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// `insert i [0|1]` insert a 0 or 1 at the i-th position of the bit vector</span>
-    <span class="doccomment">/// concurrently updates all relevant `ones` and `num` values when traversing to location `i`,</span>
-    <span class="doccomment">/// rebalance if necessary</span>
-    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>, <span class="ident">bit</span>: <span class="ident">bool</span>);
+<span class="doccomment">/// Functions associated with dynamic bit vectors.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DynBitVec</span>: <span class="ident">StaticBitVec</span> {
+    <span class="doccomment">/// Insert `bit` at position `index` in underlying container</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// runtime complexity: O(1) to O(w)</span>
+    <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">bit</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>;
 
-    <span class="doccomment">/// `delete i` delete the i-th bit</span>
-    <span class="doccomment">/// concurrently updates all relevant `ones` and `num` values when traversing to location `i`,</span>
-    <span class="doccomment">/// rebalancing if necessary</span>
-    <span class="kw">fn</span> <span class="ident">delete</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>);
+    <span class="doccomment">/// Remove bit value at position `index`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// runtime complexity: O(1) to O(w)</span>
+    <span class="kw">fn</span> <span class="ident">delete</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>;
 
-    <span class="doccomment">/// `flip i` flip the i-th bit</span>
-    <span class="doccomment">/// updates `ones` and `num` accordingly</span>
-    <span class="kw">fn</span> <span class="ident">flip</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>);
+    <span class="doccomment">/// Flip bit at position `index`, updates `ones` and `num` values accordingly</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// runtime complexity: O(1)</span>
+    <span class="kw">fn</span> <span class="ident">flip</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>);
 
-    <span class="doccomment">/// `bitset  i` sets `i`-th bit to 1</span>
-    <span class="doccomment">/// updates `ones` and `num` accordingly</span>
-    <span class="kw">fn</span> <span class="ident">bitset</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>);
+    <span class="doccomment">/// Return used capacity of underlying container</span>
+    <span class="kw">fn</span> <span class="ident">nums</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span>;
 
-    <span class="doccomment">/// `bitclear i` sets `i`-th bit to 0</span>
-    <span class="doccomment">/// updates `ones` and `num` accordingly</span>
-    <span class="kw">fn</span> <span class="ident">bitclear</span>(<span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>);
+    <span class="doccomment">/// Return used capacity of underlying container</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">nums</span>()
+    }
+
+    <span class="doccomment">/// If the Leaf has active values</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>
+    }
+
+    <span class="comment">// /// `bitset  i` sets `i`-th bit to 1</span>
+    <span class="comment">// /// updates `ones` and `num` accordingly</span>
+    <span class="comment">// fn bitset(self, i: usize);</span>
+
+    <span class="comment">// /// `bitclear i` sets `i`-th bit to 0</span>
+    <span class="comment">// /// updates `ones` and `num` accordingly</span>
+    <span class="comment">// fn bitclear(self, i: usize);</span>
 }
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DynBitTree</span> {
@@ -146,6 +217,29 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Dot</span> {
     <span class="doccomment">/// Return `dot` representation for graph visualization. [Read more](https://graphviz.org/)</span>
     <span class="kw">fn</span> <span class="ident">dotviz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">self_id</span>: <span class="ident">isize</span>) -&gt; <span class="ident">String</span>;
+}
+
+<span class="doccomment">/// Trait to get instance bit size for different structs.</span>
+<span class="comment">// Sizes reasonably exclude the [red zone](https://en.wikipedia.org/wiki/Red_zone_(computing)). If</span>
+<span class="comment">// so desired, the (default) red zone can be deactivated via `RUSTFLAGS -C no-redzone=yes`.</span>
+<span class="comment">// (is this actually correct?)</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BitSize</span>: <span class="ident">Sized</span> {
+    <span class="doccomment">/// Return total number of bits used by Type</span>
+    <span class="kw">fn</span> <span class="ident">bitsize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>()
+    }
+
+    <span class="doccomment">/// Return total number of bits allocated by objects managed by structures. Includes all</span>
+    <span class="doccomment">/// elements on different areas of heap.</span>
+    <span class="kw">fn</span> <span class="ident">bitsize_full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">bitsize</span>()
+    }
+
+    <span class="doccomment">/// Return total number of used bits (fewer than allocated) by objects managed by structures.</span>
+    <span class="doccomment">/// Includes all elements on different areas of heap.</span>
+    <span class="kw">fn</span> <span class="ident">bitsize_used</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">bitsize_full</span>()
+    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="confertus" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
