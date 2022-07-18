@@ -129,15 +129,8 @@ impl StaticBitVec for DynamicBitVector {
 impl DynBitVec for DynamicBitVector {
     #[inline]
     fn insert(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
-        match self.insert_node(self.root, index, bit) {
-            Err(e) => {
-                let lid = self.apply(Self::leaf_id, index);
-                println!("Insert for {bit} at position {index} failed with '{e}' in {lid}");
-                self.viz_stop();
-                Err(e)
-            }
-            Ok(()) => Ok(()),
-        }
+        self.insert_node(self.root, index, bit)?;
+        Ok(())
     }
 
     #[inline]

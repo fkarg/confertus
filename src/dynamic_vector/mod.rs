@@ -415,7 +415,7 @@ impl DynamicBitVector {
     /// See also the [wikipedia article on AVL-tree
     /// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).
     pub fn rotate_left(&mut self, z: usize, x: usize) {
-        println!("left-rotate {x} and {z}");
+        println!("left-rotate N{x} and N{z}");
         let mut trace = false;
         let grand_parent = self[x].parent;
         self[z].parent = grand_parent;
@@ -432,18 +432,19 @@ impl DynamicBitVector {
             self[grand_parent.unwrap()].replace_child_with(x as isize, z as isize);
         }
 
-        // only possible in case of deletion
-        if self[z].rank == 0 {
+        // zero is only possible after deletion
+        if self[z].rank != 0 {
+            self[z].rank = 0;
+            self[x].rank = 0;
+        } else {
             self[x].rank = 1;
             self[z].rank = -1;
             trace = true;
-        } else {
-            self[z].rank = 0;
-            self[x].rank = 0;
         }
 
-        self[z].nums += self[x].nums;
-        self[z].ones += self[x].ones;
+        let (n, o) = self.full_nums_ones(x as isize);
+        self[z].nums = n;
+        self[z].ones = o;
 
         // move right subtree of X
         let r = self[x].right.unwrap();
@@ -454,8 +455,10 @@ impl DynamicBitVector {
             // leaf
             self[r].parent = x;
         }
-        if trace && grand_parent.is_some() {
-            self.retrace(grand_parent.unwrap(), -1);
+        if trace {
+            if let Some(g) = grand_parent {
+                self.retrace(g, -1);
+            }
         }
     }
 
@@ -485,7 +488,7 @@ impl DynamicBitVector {
     /// See also the [wikipedia article on AVL-tree
     /// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).
     pub fn rotate_right(&mut self, z: usize, x: usize) {
-        println!("right-rotate {x} and {z}");
+        println!("right-rotate N{x} and N{z}");
         // if we need to trace back changes in rank later, which we only might in case of deletion
         // (as it might cascade for up to `log n` rotations).
         let mut trace = false;
@@ -520,8 +523,6 @@ impl DynamicBitVector {
         self[x].nums -= self[z].nums;
         self[x].ones -= self[z].ones;
 
-        // self.viz_stop();
-
         // update parent pointer of T23
         println!("left of {x}: {:?}", self[x].left);
         if let Some(l) = self[x].left {
@@ -533,10 +534,11 @@ impl DynamicBitVector {
                 self[l].parent = x;
             }
         }
-        if trace && grand_parent.is_some() {
-            self.retrace(grand_parent.unwrap(), -1);
+        if trace {
+            if let Some(g) = grand_parent {
+                self.retrace(g, -1);
+            }
         }
-        // self.viz_stop();
     }
 
     // BALANCING
@@ -622,6 +624,7 @@ impl DynamicBitVector {
             self.insert_node(self[leaf].parent, index, bit)?;
         } else if self[leaf].nums as u32 >= LeafValue::BITS {
             let node = self.split_leaf(leaf);
+            // try insertion at the newly created node
             self.insert_node(node, index, bit)?;
         } else {
             self[leaf].insert(index, bit)?;
@@ -1054,49 +1057,42 @@ impl DynamicBitVector {
         println!("wrote current tree state to 'tmp.txt'");
     }
 
-    /// Non-recursive updating of parent values. relevant e.g. after splitting
-    pub fn update_left_values_only(&mut self, node: usize, child: isize) {
-        if let Some(l) = self[node].left {
-            if l == child {
-                if l >= 0 {
-                    // left child is node
-                    self[node].nums = self[l as usize].nums;
-                    self[node].ones = self[l as usize].ones;
-                    // add values from the right child of `l`
-                    self.right_child_values(node, self[l as usize].right);
-                } else {
-                    // left child is leaf
-                    self[node].nums = self[l].nums as usize;
-                    self[node].ones = self[l].ones();
-                }
-            }
-        }
-    }
-
-    /// Recursively update parent values in case of left-child modification of `nums` or `ones`,
-    /// coming from `child`
-    pub fn update_left_values(&mut self, node: usize, child: isize) {
+    /// Non-recursive updating of parent `nums` and `ones` values.
+    ///
+    /// Returns if `child` is left side child of `node` or not.
+    pub fn update_left_values_only(&mut self, node: usize, child: isize) -> bool {
         // check if child is left child
         if let Some(l) = self[node].left {
             if l == child {
                 // was left child
                 if l >= 0 {
                     // left child is node
-                    self[node].nums = self[l as usize].nums;
-                    self[node].ones = self[l as usize].ones;
-                    // add values from the right child of `l`
-                    self.right_child_values(node, self[l as usize].right);
+                    let (n, o) = self.full_nums_ones(child);
+                    self[node].nums = n;
+                    self[node].ones = o;
                 } else {
                     // left child is leaf
                     self[node].nums = self[l].nums as usize;
                     self[node].ones = self[l].ones();
                 }
-                if let Some(p) = self[node].parent {
-                    self.update_left_values(p, node as isize)
-                }
+                return true;
+            }
+            // ignore if we came from right child
+        }
+        // no left child? no values to update
+        false
+    }
+
+    /// Recursively update parent values in case of left-child modification of `nums` or `ones`,
+    /// coming from `child`.
+    pub fn update_left_values(&mut self, node: usize, child: isize) {
+        // do most of actual work first
+        if self.update_left_values_only(node, child) {
+            // recurse if values got updated and parent exists
+            if let Some(p) = self[node].parent {
+                self.update_left_values(p, node as isize);
             }
         }
-        // everything else (was right child) doesn't matter
     }
 
     #[inline]
@@ -1106,40 +1102,6 @@ impl DynamicBitVector {
         } else {
             self[node].nums = 0;
             self[node].ones = 0;
-        }
-    }
-
-    /// Graphically, update values `nums` and `ones` from `N1` (`to_update`) by adding values from
-    /// `N2` (which happened in `update_left_values`) and `N3` (`left_right_child`), which is
-    /// happening here.
-    /// ```text
-    ///                           ┌───┐
-    ///                           │   │
-    ///                        ┌──┤N1 │
-    ///                        │  │num│
-    ///                        │  └───┘
-    ///                      ┌─▼─┐
-    ///                      │   │
-    ///                      │N2 ├───┐
-    ///                      │num│   │
-    ///                      └───┘ ┌─▼─┐
-    ///                            │   │
-    ///                            │N3 │
-    ///                            │num│
-    ///                            └───┘
-    /// ```
-    #[inline]
-    fn right_child_values(&mut self, to_update: usize, left_right_child: Option<isize>) {
-        if let Some(r) = left_right_child {
-            if r >= 0 {
-                // node
-                self[to_update].nums += self[r as usize].nums;
-                self[to_update].ones += self[r as usize].ones;
-            } else {
-                // leaf
-                self[to_update].nums += self[r].nums as usize;
-                self[to_update].ones += self[r].ones();
-            }
         }
     }
 
@@ -1164,8 +1126,46 @@ impl DynamicBitVector {
     // MISC
 
     /// Return the id of leaf for `index`
+    #[inline]
     fn leaf_id(&mut self, leaf: isize, index: usize) -> isize {
         leaf
+    }
+
+    /// Return `nums` and `ones` of `child` (`N2`) from both its left and right subtrees.
+    ///
+    /// Graphically, return fully redundant indexing support values `nums` and `ones` for `N1` by
+    /// adding left-values from `N2` and `N3`, as well as right-values from `N3` (recursively until
+    /// leaf).
+    /// ```text
+    ///                           ┌───┐
+    ///                           │   │
+    ///                        ┌──┤N1 │
+    ///                        │  │num│
+    ///                      ┌─▼─┐└───┘
+    ///                      │   │
+    ///                      │N2 ├───┐
+    ///                      │num│   │
+    ///                      └───┘ ┌─▼─┐
+    ///                            │   │
+    ///                            │N3 │
+    ///                            │num│
+    ///                            └───┘
+    /// ```
+    #[inline]
+    pub fn full_nums_ones(&self, child: isize) -> (usize, usize) {
+        if child >= 0 {
+            let node = child as usize;
+            // node
+            if let Some(r) = self[node].right {
+                let (n, o) = self.full_nums_ones(r);
+                return (n + self[node].nums, o + self[node].ones);
+            } else {
+                return (self[node].nums, self[node].ones);
+            }
+        } else {
+            // leaf
+            return (self[child].nums as usize, self[child].ones());
+        }
     }
 }
 

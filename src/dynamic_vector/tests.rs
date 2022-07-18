@@ -25,6 +25,71 @@ fn push_6() {
     for _ in 0..(LeafValue::BITS * 6) {
         d.push(true);
     }
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 1,
+            nodes: vec![
+                Node::create(
+                    Some(1),
+                    Some(-1),
+                    Some(-2),
+                    LeafValue::BITS as usize,
+                    LeafValue::BITS as usize,
+                    0
+                ),
+                Node::create(
+                    None,
+                    Some(0),
+                    Some(3),
+                    2 * LeafValue::BITS as usize,
+                    2 * LeafValue::BITS as usize,
+                    1
+                ),
+                Node::create(
+                    Some(3),
+                    Some(-3),
+                    Some(-4),
+                    LeafValue::BITS as usize,
+                    LeafValue::BITS as usize,
+                    0
+                ),
+                Node::create(
+                    Some(1),
+                    Some(2),
+                    Some(4),
+                    2 * LeafValue::BITS as usize,
+                    2 * LeafValue::BITS as usize,
+                    0
+                ),
+                Node::create(
+                    Some(3),
+                    Some(-5),
+                    Some(-6),
+                    LeafValue::BITS as usize,
+                    LeafValue::BITS as usize,
+                    0
+                ),
+            ],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(0, LeafValue::MAX, LeafValue::BITS as u8),
+                Leaf::create(0, LeafValue::MAX, LeafValue::BITS as u8),
+                Leaf::create(2, LeafValue::MAX, LeafValue::BITS as u8),
+                Leaf::create(2, LeafValue::MAX, LeafValue::BITS as u8),
+                Leaf::create(4, LeafValue::MAX, LeafValue::BITS as u8),
+                Leaf::create(4, LeafValue::MAX, LeafValue::BITS as u8),
+            ],
+        }
+    );
+}
+
+fn push_6_2() {
+    let mut d = DynamicBitVector::new();
+    for _ in 0..(LeafValue::BITS * 6) {
+        d.push(true);
+    }
+    d.push(true);
     d.viz();
     assert_eq!(
         d,
@@ -145,6 +210,35 @@ fn insert_2() {
         }
     );
 }
+
+fn insert_3() {
+    let mut d = DynamicBitVector::new();
+    for i in 0..(LeafValue::BITS * 3) {
+        d.insert(0, true).expect("insert failed at {i}");
+    }
+    let half = (LeafValue::BITS / 2) as usize;
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 1,
+            nodes: vec![
+                Node::create(Some(1), Some(-3), Some(-2), half, half, 0),
+                Node::create(None, Some(2), Some(0), half * 4, half * 4, -1),
+                Node::create(Some(1), Some(3), Some(-4), half * 3, half * 3, -1),
+                Node::create(Some(2), Some(-1), Some(-5), half * 2, half * 2, 0),
+            ],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(3, LeafValue::MAX, (half * 2) as u8),
+                Leaf::create(0, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
+                Leaf::create(0, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
+                Leaf::create(2, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
+                Leaf::create(3, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
+            ],
+        }
+    );
+}
+
 
 fn insert_6() {
     let mut d = DynamicBitVector::new();
