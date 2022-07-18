@@ -4,6 +4,11 @@ use quickcheck::TestResult;
 use quickcheck_macros::quickcheck;
 use rand::Rng;
 
+#[test]
+fn ones_lv() {
+    assert_eq!(LeafValue::MAX.ones(), LeafValue::BITS as usize);
+}
+
 // tests for DynBitVec-trait
 
 #[test]

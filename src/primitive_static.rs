@@ -292,7 +292,10 @@ impl UnsafeBitVec for u128 {
             // only move by u64::BITS instead of u128::BITS to cap left side away in cast to i64
             _popcnt64(array.overflowing_shl(u64::BITS - index as u32).0 as i64) as usize
         } else {
-            _popcnt64(array.overflowing_shl(u128::BITS - index as u32).0 as i64) as usize
+            // full right half first
+            _popcnt64(array as i64) as usize +
+            // plus left half until index, and then move right
+            _popcnt64(array.overflowing_shl(u128::BITS - index as u32).0.overflowing_shr(64).0 as i64) as usize
         }
     }
 }
@@ -351,6 +354,26 @@ mod tests {
     #[test]
     fn ones_u64_3() {
         assert_eq!(7u64.ones(), 3);
+    }
+
+    #[test]
+    fn ones_u128_1() {
+        assert_eq!(4u128.ones(), 1);
+    }
+
+    #[test]
+    fn ones_u128_2() {
+        assert_eq!(5u128.ones(), 2);
+    }
+
+    #[test]
+    fn ones_u128_3() {
+        assert_eq!(7u128.ones(), 3);
+    }
+
+    #[test]
+    fn ones_u128_4() {
+        assert_eq!((u128::MAX - 7).ones(), (u128::BITS - 3) as usize);
     }
 
     /// Test if generated number with specific number of ones really has them

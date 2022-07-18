@@ -93,6 +93,7 @@ impl IndexMut<isize> for DynamicBitVector {
 impl StaticBitVec for DynamicBitVector {
     type Intern = Vec<LeafValue>;
 
+    #[inline]
     fn ones(&self) -> usize {
         self[self.root].ones
     }
@@ -128,8 +129,15 @@ impl StaticBitVec for DynamicBitVector {
 impl DynBitVec for DynamicBitVector {
     #[inline]
     fn insert(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
-        self.insert_node(self.root, index, bit)?;
-        Ok(())
+        match self.insert_node(self.root, index, bit) {
+            Err(e) => {
+                let lid = self.apply(Self::leaf_id, index);
+                println!("Insert for {bit} at position {index} failed with '{e}' in {lid}");
+                self.viz_stop();
+                Err(e)
+            }
+            Ok(()) => Ok(()),
+        }
     }
 
     #[inline]

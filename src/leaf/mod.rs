@@ -8,7 +8,8 @@ type Side<T> = either::Either<T, T>;
 /// Container type used to contain bits in [`Leaf`]. Sensible options are [`u64`] and [`u128`].
 /// Might be replaced with custom implementation featuring higher bit container size later (e.g.
 /// 4096, or dynamically dependent on total BitVector capacity).
-pub type LeafValue = u64;
+// pub type LeafValue = u64;
+pub type LeafValue = u128;
 
 pub const HALF: u32 = LeafValue::BITS / 2;
 

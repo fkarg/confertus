@@ -3,12 +3,39 @@ use crate::traits::*;
 
 impl Dot for Leaf {
     fn dotviz(&self, self_id: isize) -> String {
-        format!(
-            "L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n",
-            self.value, self.nums
-        )
-        // format!("L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n\
-        //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
+        if LeafValue::BITS == 128 {
+            format!(
+                "L{self_id} [label=\"L{self_id}\\n{:#0130b}\\nnums={}\" shape=record];\n",
+                self.value,
+                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
+            )
+        } else if LeafValue::BITS == 64 {
+            format!(
+                "L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n",
+                self.value,
+                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
+            )
+        } else if LeafValue::BITS == 32 {
+            format!(
+                "L{self_id} [label=\"L{self_id}\\n{:#034b}\\nnums={}\" shape=record];\n",
+                self.value,
+                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
+            )
+        } else if LeafValue::BITS == 16 {
+            format!(
+                "L{self_id} [label=\"L{self_id}\\n{:#018b}\\nnums={}\" shape=record];\n",
+                self.value,
+                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
+            )
+        } else if LeafValue::BITS == 8 {
+            format!(
+                "L{self_id} [label=\"L{self_id}\\n{:#010b}\\nnums={}\" shape=record];\n",
+                self.value,
+                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
+            )
+        } else {
+            unreachable!()
+        }
     }
 }
 
@@ -91,8 +118,13 @@ impl DynBitVec for Leaf {
         if (self.nums as u32) < LeafValue::BITS && index <= self.nums as usize {
             unsafe { self.insert_unchecked(index, bit) };
             Ok(())
+        } else if index > self.nums as usize {
+            println!("index {index} out of bounds for {}", self.nums);
+            Err("Leaf.insert: Index out of bounds `index > self.nums`")
+        } else if (self.nums as u32) >= LeafValue::BITS {
+            Err("Leaf.insert: No free capacity left")
         } else {
-            Err("No free capacity left, or `index > self.nums`")
+            unreachable!()
         }
     }
 
@@ -104,6 +136,10 @@ impl DynBitVec for Leaf {
         } else if self.is_empty() {
             Err("Tried to delete in empty leaf")
         } else {
+            println!(
+                "deletion: attempted deletion of {index}, but size is {}",
+                self.nums
+            );
             Err("deletion of non-allocated position: `index >= self.nums`")
         }
     }

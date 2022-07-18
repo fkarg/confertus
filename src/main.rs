@@ -2,7 +2,7 @@
 
 use confertus::commands;
 use confertus::config::Config;
-use confertus::{BitSize, DynamicBitVector};
+use confertus::{BitSize, DynamicBitVector, StaticBitVec};
 use std::env;
 use std::process;
 use std::time::{Duration, Instant};
@@ -30,6 +30,15 @@ use std::time::{Duration, Instant};
 /// - [ ] Extending LeafValue container
 /// - [ ] BP with Range-Min-Max-Tree
 fn main() -> Result<(), &'static str> {
+    dbg!(u64::MAX.rank(true, 0));
+    dbg!(u64::MAX.rank(true, 64));
+    dbg!(cfg!(target_arch = "x86"));
+    dbg!(cfg!(target_arch = "x86_64"));
+    dbg!(cfg!(target_feature = "bmi1"));
+    dbg!(cfg!(target_feature = "bmi2"));
+    println!("{}", 15u64.select(false, 2));
+    println!("{}", 15u64.select(true, 2));
+
     // time measured and duration with nanosecond precision
     let mut time_total: Duration = Duration::from_millis(0);
     let mut last_timestamp_cont: Instant = Instant::now();

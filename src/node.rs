@@ -1,4 +1,5 @@
-use crate::traits::Dot;
+use crate::traits::{Dot, StaticBitVec};
+use crate::{Leaf, LeafValue};
 use std::fmt;
 
 /// Node element of [`super::DynamicBitVector`]. Contains references (indices) to parent `Node`,
@@ -55,7 +56,26 @@ impl Node {
         }
     }
 
-    /// Used when inserting a Node in place of a [`crate::Leaf`] or rotating to keep rank
+    /// Constructs new `Node` with given values
+    pub fn create(
+        parent: Option<usize>,
+        left: Option<isize>,
+        right: Option<isize>,
+        nums: usize,
+        ones: usize,
+        rank: i8,
+    ) -> Self {
+        Node {
+            parent,
+            left,
+            right,
+            nums,
+            ones,
+            rank,
+        }
+    }
+
+    /// Used when inserting a Node in place of a [`crate::Leaf`] or rotation to keep rank
     pub fn replace_child_with(&mut self, child: isize, new_child: isize) {
         if let Some(l) = self.left {
             if l == child {
@@ -115,11 +135,48 @@ impl Dot for Node {
     }
 }
 
+// Welp, so much for that attempt. Could have been really useful, but you'd need some form of
+// backreference to [`DynamicBitVector`], and I just don't think that's gonna be a thing.
+impl StaticBitVec for Node {
+    type Intern = Vec<LeafValue>;
+
+    fn ones(&self) -> usize {
+        self.ones
+    }
+
+    fn access(&self, index: usize) -> bool {
+        unimplemented!("not possible without access to other Nodes/Leafs")
+    }
+
+    fn rank(&self, bit: bool, index: usize) -> usize {
+        unimplemented!("not possible without access to other Nodes/Leafs")
+    }
+
+    fn select(&self, bit: bool, n: usize) -> usize {
+        unimplemented!("not possible without access to other Nodes/Leafs")
+    }
+
+    fn values(&self) -> Self::Intern {
+        unimplemented!("not possible without access to other Nodes/Leafs")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
-    fn exploration() {
-        assert_eq!(2 + 2, 4);
+    fn creation() {
+        let n = Node::new();
+        assert_eq!(
+            n,
+            Node {
+                parent: None,
+                left: None,
+                right: None,
+                nums: 0,
+                ones: 0,
+                rank: 0,
+            }
+        );
     }
 }

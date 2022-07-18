@@ -10,16 +10,17 @@ pub mod commands;
 /// Trait definitions, particularly for [`StaticBitVec`] and [`DynBitVec`].
 pub mod traits;
 
-/// Module providing commonly used utility functions
-pub mod utils;
-
 /// Actual implementation of dynamic bit vector with AVL Tree
 pub mod dynamic_vector;
 
 /// Configuration for command line arguments
 pub mod config;
 
+/// Implementation of [`StaticBitVec`] for primitive types ([`u64`], [`u128`], ...)
 mod primitive_static;
+
+// /// Module providing commonly used utility functions
+// pub mod utils;
 
 // /// Static bit vector implementation: `SBitVec` used as Leaf for dynamic bit vectors `DynBitV`
 // /// (incomplete)
@@ -38,4 +39,4 @@ mod leaf;
 mod node;
 
 #[doc = include_str!("../README.md")]
-pub use crate::{commands::*, config::*, dynamic_vector::*, traits::*, utils::*};
+pub use crate::{commands::*, config::*, dynamic_vector::*, traits::*};

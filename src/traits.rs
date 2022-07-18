@@ -6,7 +6,7 @@ use core::arch::x86_64::{_pdep_u64, _tzcnt_u64};
 pub trait StaticBitVec {
     type Intern;
 
-    /// Return number of on-bits in container
+    /// Return number of on-bits in container or on left half for tree-based elements
     fn ones(&self) -> usize;
 
     /// Access bit value at position `index`

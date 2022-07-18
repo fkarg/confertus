@@ -5,6 +5,7 @@ use crate::traits::{Dot, DynBitVec, StaticBitVec};
 use either;
 use either::{Left, Right};
 use std::fmt;
+use std::io::Write;
 use std::ops::{Add, Index, IndexMut};
 
 type Side<T> = either::Either<T, T>;
@@ -391,9 +392,30 @@ impl DynamicBitVector {
 
     /// Left rotation of [`Node`]s `x` and `z`.
     ///
-    /// Assumes that `z` is right child of `x`, `x.rank == 2` and `z.rank == 1|0`.
-    /// (0 only happens for deletion)
+    /// Assumes that `z` is right child of `x`, `x.rank == 2` and `z.rank == 1|0`
+    /// (0 can only happens after deletion, and correct ranks might not be zero in all situations
+    /// after rotation).
+    /// ```text
+    ///         │parent                                          │parent
+    ///         │                                                │
+    ///       ┌─▼─┐                                            ┌─▼─┐
+    ///   left│ X │right                                   left│ Z │right
+    ///   ┌───┤   ├───┐                                    ┌───┤   ├───┐
+    ///   │   │r:2│   │                                    │   │r:0│   │
+    /// ┌─▼─┐ └───┘ ┌─▼─┐                                ┌─▼─┐ └───┘ ┌─▼─┐
+    /// │   │       │ Z │         left rotation      left│ X │right  │   │
+    /// │T1 │   ┌───┤   ├───┐                        ┌───┤   ├───┐   │T4 │
+    /// │   │   │   │r:1│   │     ────────────►      │   │r:0│   │   │   │
+    /// └───┘ ┌─▼─┐ └───┘ ┌─▼─┐                    ┌─▼─┐ └───┘ ┌─▼─┐ └───┘
+    ///       │   │       │   │                    │   │       │   │
+    ///       │T23│       │T4 │                    │T1 │       │T23│
+    ///       │   │       │   │                    │   │       │   │
+    ///       └───┘       └───┘                    └───┘       └───┘
+    /// ```
+    /// See also the [wikipedia article on AVL-tree
+    /// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).
     pub fn rotate_left(&mut self, z: usize, x: usize) {
+        println!("left-rotate {x} and {z}");
         let mut trace = false;
         let grand_parent = self[x].parent;
         self[z].parent = grand_parent;
@@ -437,52 +459,84 @@ impl DynamicBitVector {
         }
     }
 
-    /// Right rotation of [`Node`]s `x` and `z`.
+    /// Right rotation of [`Node`]s `z` and `x` to reestablish rank-difference invariant.
     ///
-    /// Assumes that `z` is left child of `x`, `x.rank == 2` and `z.rank == 1|0`.
-    /// (0 only happens for deletion)
-    pub fn rotate_right(&mut self, z: usize, x: usize) -> usize {
+    /// Assumes that `z` is left child of `x`, `x.rank == 2` and `z.rank == 1|0`
+    /// (0 can only happens after deletion, and correct ranks might not be zero in all situations
+    /// after rotation). We won't need to recursively update `nums` and `ones, as they won't
+    /// change from the perspective of `parent`.
+    /// ```text
+    ///               │parent                               │parent
+    ///               │                                     │
+    ///             ┌─▼─┐                                 ┌─▼─┐
+    ///         left│ X │right                        left│ Z │right
+    ///         ┌───┤   ├───┐                         ┌───┤   ├───┐
+    ///         │   │r:2│   │                         │   │r:0│   │
+    ///       ┌─▼─┐ └───┘ ┌─▼─┐   right rotation    ┌─▼─┐ └───┘ ┌─▼─┐
+    ///   left│ Z │right  │   │                     │   │       │ X │
+    ///   ┌───┤   ├───┐   │T4 │    ───────────►     │T1 │   ┌───┤   ├───┐
+    ///   │   │r:1│   │   │   │                     │   │   │   │r:0│   │
+    /// ┌─▼─┐ └───┘ ┌─▼─┐ └───┘                     └───┘ ┌─▼─┐ └───┘ ┌─▼─┐
+    /// │   │       │   │                                 │   │       │   │
+    /// │T1 │       │T23│                                 │T23│       │T4 │
+    /// │   │       │   │                                 │   │       │   │
+    /// └───┘       └───┘                                 └───┘       └───┘
+    /// ```
+    /// See also the [wikipedia article on AVL-tree
+    /// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).
+    pub fn rotate_right(&mut self, z: usize, x: usize) {
+        println!("right-rotate {x} and {z}");
+        // if we need to trace back changes in rank later, which we only might in case of deletion
+        // (as it might cascade for up to `log n` rotations).
         let mut trace = false;
+
+        // update parent pointers of x and z
         let grand_parent = self[x].parent;
         self[z].parent = grand_parent;
-
         self[x].parent = Some(z);
 
+        // moving of T23
         self[x].left = self[z].right;
+
         self[z].right = Some(x as isize);
 
         if x == self.root {
-            // grand_parent == None
+            // it means that `grand_parent` was None
             self.root = z;
         } else {
             self[grand_parent.unwrap()].replace_child_with(x as isize, z as isize);
         }
+
         // only possible in case of deletion
         if self[z].rank == 0 {
-            self[x].rank = 1; // ?
-            self[z].rank = -1; // ?
+            self[x].rank = 1; // not sure for right rotation
+            self[z].rank = -1; // not sure for right rotation, maybe switch?
             trace = true;
         } else {
             self[z].rank = 0;
             self[x].rank = 0;
         }
 
-        self[z].nums += self[x].nums;
-        self[z].ones += self[x].ones;
+        self[x].nums -= self[z].nums;
+        self[x].ones -= self[z].ones;
 
-        // move left subtree of X
-        let r = self[x].left.unwrap();
-        if r >= 0 {
-            // node
-            self[r as usize].parent = Some(x);
-        } else {
-            // leaf
-            self[r].parent = x;
+        // self.viz_stop();
+
+        // update parent pointer of T23
+        println!("left of {x}: {:?}", self[x].left);
+        if let Some(l) = self[x].left {
+            if l >= 0 {
+                // node
+                self[l as usize].parent = Some(x);
+            } else {
+                // leaf
+                self[l].parent = x;
+            }
         }
         if trace && grand_parent.is_some() {
             self.retrace(grand_parent.unwrap(), -1);
         }
-        todo!(".rotate_right {}", self) // validate
+        // self.viz_stop();
     }
 
     // BALANCING
@@ -556,7 +610,17 @@ impl DynamicBitVector {
     /// Handle inserting `bit` at position `index` in given `leaf`
     fn insert_leaf(&mut self, leaf: isize, index: usize, bit: bool) -> Result<(), &'static str> {
         // check for leaf full, split, traverse, rebalance, insert if true.
-        if self[leaf].nums as u32 >= LeafValue::BITS {
+        if self[leaf].nums as u32 >= LeafValue::BITS && self[self[leaf].parent].left.is_none() {
+            self.move_right_child_left(self[leaf].parent);
+
+            let values = self[leaf].split_to_right();
+            let leaf_id = self.create_right_leaf(self[leaf].parent);
+            self[leaf_id].value = values;
+            self[leaf_id].nums = (LeafValue::BITS / 2) as u8;
+            self.update_left_values_only(self[leaf].parent, leaf);
+
+            self.insert_node(self[leaf].parent, index, bit)?;
+        } else if self[leaf].nums as u32 >= LeafValue::BITS {
             let node = self.split_leaf(leaf);
             self.insert_node(node, index, bit)?;
         } else {
@@ -565,7 +629,9 @@ impl DynamicBitVector {
         Ok(())
     }
 
-    /// Handle inserting `bit` at position `index` in given `node`
+    /// Handle inserting `bit` at position `index` in given `node`.
+    ///
+    /// Not to be confused with `?`, which is for inserting a `Node`.
     fn insert_node(&mut self, node: usize, index: usize, bit: bool) -> Result<(), &'static str> {
         // update `nums` and `ones` values during descent
         if self[node].nums <= index {
@@ -970,14 +1036,41 @@ impl DynamicBitVector {
 
     // MISC
 
-    /// Output current tree state to file for visualization and pause execution until input is
+    /// Output current tree state to file for visualization and pause execution until some input is
     /// given
     #[inline]
     fn viz_stop(&self) {
-        println!("stopped for visualization. to continue: [Enter]");
-        commands::write_file("tmp.txt", &self.dotviz(0)).unwrap();
+        self.viz();
+        print!("stopped for visualization. continue by pressing [Enter]");
+        std::io::stdout().flush().unwrap();
         commands::wait_continue();
         println!();
+    }
+
+    /// Write current tree state to file for visualization, but don't pause execution
+    #[inline]
+    fn viz(&self) {
+        commands::write_file("tmp.txt", &self.dotviz(0)).unwrap();
+        println!("wrote current tree state to 'tmp.txt'");
+    }
+
+    /// Non-recursive updating of parent values. relevant e.g. after splitting
+    pub fn update_left_values_only(&mut self, node: usize, child: isize) {
+        if let Some(l) = self[node].left {
+            if l == child {
+                if l >= 0 {
+                    // left child is node
+                    self[node].nums = self[l as usize].nums;
+                    self[node].ones = self[l as usize].ones;
+                    // add values from the right child of `l`
+                    self.right_child_values(node, self[l as usize].right);
+                } else {
+                    // left child is leaf
+                    self[node].nums = self[l].nums as usize;
+                    self[node].ones = self[l].ones();
+                }
+            }
+        }
     }
 
     /// Recursively update parent values in case of left-child modification of `nums` or `ones`,
@@ -1062,9 +1155,17 @@ impl DynamicBitVector {
         let leaf_id = self.create_right_leaf(new_node);
         self[leaf_id].value = values;
         self[leaf_id].nums = (LeafValue::BITS / 2) as u8;
+        self.update_left_values_only(new_node, leaf);
 
         // making leaf right child of new Node
         new_node
+    }
+
+    // MISC
+
+    /// Return the id of leaf for `index`
+    fn leaf_id(&mut self, leaf: isize, index: usize) -> isize {
+        leaf
     }
 }
 
