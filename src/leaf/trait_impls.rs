@@ -3,39 +3,14 @@ use crate::traits::*;
 
 impl Dot for Leaf {
     fn dotviz(&self, self_id: isize) -> String {
-        if LeafValue::BITS == 128 {
-            format!(
-                "L{self_id} [label=\"L{self_id}\\n{:#0130b}\\nnums={}\" shape=record];\n",
-                self.value,
-                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
+
+        format!(
+            "L{self_id} [label=\"L{self_id}\\n{:#0width$b}\\nnums={}\" shape=record];\n",
+            self.value,
+            self.nums,
+            width = (LeafValue::BITS + 2) as usize
+            //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
             )
-        } else if LeafValue::BITS == 64 {
-            format!(
-                "L{self_id} [label=\"L{self_id}\\n{:#066b}\\nnums={}\" shape=record];\n",
-                self.value,
-                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
-            )
-        } else if LeafValue::BITS == 32 {
-            format!(
-                "L{self_id} [label=\"L{self_id}\\n{:#034b}\\nnums={}\" shape=record];\n",
-                self.value,
-                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
-            )
-        } else if LeafValue::BITS == 16 {
-            format!(
-                "L{self_id} [label=\"L{self_id}\\n{:#018b}\\nnums={}\" shape=record];\n",
-                self.value,
-                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
-            )
-        } else if LeafValue::BITS == 8 {
-            format!(
-                "L{self_id} [label=\"L{self_id}\\n{:#010b}\\nnums={}\" shape=record];\n",
-                self.value,
-                self.nums //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
-            )
-        } else {
-            unreachable!()
-        }
     }
 }
 
@@ -43,40 +18,10 @@ impl Dot for Leaf {
 /// binary representation}]`
 impl fmt::Debug for Leaf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // descending order of bit sizes, as the higher ones are probably used more often
-        if LeafValue::BITS == 128 {
-            write!(
-                f,
-                "Leaf[P: <{:3}>, nums {:3}, value {:#0130b}]",
-                self.parent, self.nums, self.value
+        write!(f,
+            "Leaf[P: <{:3}>, nums {:3}, value {:#0width$b}]",
+                self.parent, self.nums, self.value, width = (LeafValue::BITS + 2) as usize
             )
-        } else if LeafValue::BITS == 64 {
-            write!(
-                f,
-                "Leaf[P: <{:3}>, nums {:2}, value {:#066b}]",
-                self.parent, self.nums, self.value
-            )
-        } else if LeafValue::BITS == 32 {
-            write!(
-                f,
-                "Leaf[P: <{:3}>, nums {:3}, value {:#034b}]",
-                self.parent, self.nums, self.value
-            )
-        } else if LeafValue::BITS == 16 {
-            write!(
-                f,
-                "Leaf[P: <{:3}>, nums {:3}, value {:#018b}]",
-                self.parent, self.nums, self.value
-            )
-        } else if LeafValue::BITS == 8 {
-            write!(
-                f,
-                "Leaf[P: <{:3}>, nums {:3}, value {:#010b}]",
-                self.parent, self.nums, self.value
-            )
-        } else {
-            unreachable!()
-        }
     }
 }
 
