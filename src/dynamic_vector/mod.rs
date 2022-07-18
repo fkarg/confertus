@@ -179,6 +179,7 @@ impl DynamicBitVector {
     /// Assumes that intermediary node does not have children (overwrites `left` child otherwise)
     /// or otherwise relevant information (`nums` and `ones` get overwritten too).
     fn insert_intermediary_node(&mut self, child_id: isize, int_node_id: usize) {
+        #[cfg(debug_assertions)]
         println!("Insert Node {} for {}", int_node_id, child_id);
         let parent_id = self[child_id].parent;
         if let Some(l) = self[parent_id].left {
@@ -231,6 +232,7 @@ impl DynamicBitVector {
     /// # Panics
     /// If right child is [`None`]
     fn move_right_child_left(&mut self, node: usize) {
+        #[cfg(debug_assertions)]
         println!("Moving R to L in {:?}", self[node]);
         self[node].left = self[node].right;
         self[node].right = None;
@@ -403,7 +405,7 @@ impl DynamicBitVector {
     ///   ┌───┤   ├───┐                                    ┌───┤   ├───┐
     ///   │   │r:2│   │                                    │   │r:0│   │
     /// ┌─▼─┐ └───┘ ┌─▼─┐                                ┌─▼─┐ └───┘ ┌─▼─┐
-    /// │   │       │ Z │         left rotation      left│ X │right  │   │
+    /// │   │   left│ Z │right    left rotation      left│ X │right  │   │
     /// │T1 │   ┌───┤   ├───┐                        ┌───┤   ├───┐   │T4 │
     /// │   │   │   │r:1│   │     ────────────►      │   │r:0│   │   │   │
     /// └───┘ ┌─▼─┐ └───┘ ┌─▼─┐                    ┌─▼─┐ └───┘ ┌─▼─┐ └───┘
@@ -415,13 +417,15 @@ impl DynamicBitVector {
     /// See also the [wikipedia article on AVL-tree
     /// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).
     pub fn rotate_left(&mut self, z: usize, x: usize) {
-        println!("left-rotate N{x} and N{z}");
+        #[cfg(debug_assertions)]
+        println!("left-rotate N{x} (x) and N{z} (z, lower)");
         let mut trace = false;
         let grand_parent = self[x].parent;
+        // update parents
         self[z].parent = grand_parent;
-
         self[x].parent = Some(z);
 
+        // move T23
         self[x].right = self[z].left;
         self[z].left = Some(x as isize);
 
@@ -437,8 +441,10 @@ impl DynamicBitVector {
             self[z].rank = 0;
             self[x].rank = 0;
         } else {
+            // according to wikipedia
             self[x].rank = 1;
             self[z].rank = -1;
+            // deletion requires additional tracing of changes
             trace = true;
         }
 
@@ -446,14 +452,16 @@ impl DynamicBitVector {
         self[z].nums = n;
         self[z].ones = o;
 
-        // move right subtree of X
-        let r = self[x].right.unwrap();
-        if r >= 0 {
-            // node
-            self[r as usize].parent = Some(x);
-        } else {
-            // leaf
-            self[r].parent = x;
+        // properly set parent of T23 to X
+        if let Some(r) = self[x].right {
+            // can it be None here?
+            if r >= 0 {
+                // node
+                self[r as usize].parent = Some(x);
+            } else {
+                // leaf
+                self[r].parent = x;
+            }
         }
         if trace {
             if let Some(g) = grand_parent {
@@ -476,7 +484,7 @@ impl DynamicBitVector {
     ///         ┌───┤   ├───┐                         ┌───┤   ├───┐
     ///         │   │r:2│   │                         │   │r:0│   │
     ///       ┌─▼─┐ └───┘ ┌─▼─┐   right rotation    ┌─▼─┐ └───┘ ┌─▼─┐
-    ///   left│ Z │right  │   │                     │   │       │ X │
+    ///   left│ Z │right  │   │                     │   │   left│ X │right
     ///   ┌───┤   ├───┐   │T4 │    ───────────►     │T1 │   ┌───┤   ├───┐
     ///   │   │r:1│   │   │   │                     │   │   │   │r:0│   │
     /// ┌─▼─┐ └───┘ ┌─▼─┐ └───┘                     └───┘ ┌─▼─┐ └───┘ ┌─▼─┐
@@ -488,7 +496,8 @@ impl DynamicBitVector {
     /// See also the [wikipedia article on AVL-tree
     /// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).
     pub fn rotate_right(&mut self, z: usize, x: usize) {
-        println!("right-rotate N{x} and N{z}");
+        #[cfg(debug_assertions)]
+        println!("right-rotate N{x} (x) and N{z} (z, lower) ");
         // if we need to trace back changes in rank later, which we only might in case of deletion
         // (as it might cascade for up to `log n` rotations).
         let mut trace = false;
@@ -520,10 +529,14 @@ impl DynamicBitVector {
             self[x].rank = 0;
         }
 
-        self[x].nums -= self[z].nums;
-        self[x].ones -= self[z].ones;
+        if let Some(l) = self[x].left {
+            let (n, o) = self.full_nums_ones(l);
+            self[x].nums = n;
+            self[x].ones = o;
+        }
 
-        // update parent pointer of T23
+        // update parent pointer of T23, which might actually not exist (happened before)
+        #[cfg(debug_assertions)]
         println!("left of {x}: {:?}", self[x].left);
         if let Some(l) = self[x].left {
             if l >= 0 {
@@ -552,10 +565,12 @@ impl DynamicBitVector {
     /// - `parent` is [`Node`] with temporary rank / balance factor violation
     /// - `node` is higher child of `parent`
     pub fn rebalance(&mut self, node: usize, parent: usize) {
+        #[cfg(debug_assertions)]
         println!(
             "rebalance ranks: parent.r {} node.r {}",
             self[parent].rank, self[node].rank
         );
+        #[cfg(debug_assertions)]
         println!("rebalance node ids: parent {} node {}", parent, node);
         // invariance has been broken at `parent`, while `node` is the 'higher' child. (unclear
         // which side)
@@ -564,9 +579,11 @@ impl DynamicBitVector {
             if r == node as isize {
                 // node is right child
                 if self[node].rank >= 0 {
+                    #[cfg(debug_assertions)]
                     println!(" Right Right violation");
                     self.rotate_left(node, parent);
                 } else {
+                    #[cfg(debug_assertions)]
                     println!(" Right Left violation");
                     let y = self[node].left.unwrap() as usize;
                     self.rotate_right(y, node);
@@ -578,9 +595,11 @@ impl DynamicBitVector {
             if l == node as isize {
                 // node is left child
                 if self[node].rank <= 0 {
+                    #[cfg(debug_assertions)]
                     println!(" Left Left violation");
                     self.rotate_right(node, parent);
                 } else {
+                    #[cfg(debug_assertions)]
                     println!(" Left Right violation");
                     let y = self[node].right.unwrap() as usize;
                     self.rotate_left(y, node);
@@ -710,10 +729,10 @@ impl DynamicBitVector {
             // enter right side
             let right_id = self[node].right.unwrap();
             if right_id >= 0 {
-                self.delete_node(right_id as usize, index - self[node].nums)?;
+                return self.delete_node(right_id as usize, index - self[node].nums);
             } else {
                 // leaf
-                self.delete_leaf(right_id, index - self[node].nums)?;
+                return self.delete_leaf(right_id, index - self[node].nums);
             }
         } else {
             // enter left side
@@ -724,15 +743,12 @@ impl DynamicBitVector {
             // }
             // // TODO: welp, information to update nums and bits not really available here.
             if left_id >= 0 {
-                self.delete_node(left_id as usize, index)?;
+                return self.delete_node(left_id as usize, index);
             } else {
                 // leaf
-                self.delete_leaf(left_id, index)?;
+                return self.delete_leaf(left_id, index);
             }
         }
-        self.viz_stop();
-        todo!(".delete_node {}", self);
-        // Ok(())
     }
 
     // CLOSEST_NEIGHBOR_*
@@ -1042,6 +1058,7 @@ impl DynamicBitVector {
     /// Output current tree state to file for visualization and pause execution until some input is
     /// given
     #[inline]
+    #[cfg(debug_assertions)]
     fn viz_stop(&self) {
         self.viz();
         print!("stopped for visualization. continue by pressing [Enter]");
@@ -1052,10 +1069,17 @@ impl DynamicBitVector {
 
     /// Write current tree state to file for visualization, but don't pause execution
     #[inline]
+    #[cfg(debug_assertions)]
     fn viz(&self) {
         commands::write_file("tmp.txt", &self.dotviz(0)).unwrap();
         println!("wrote current tree state to 'tmp.txt'");
     }
+
+    #[cfg(not(debug_assertions))]
+    fn viz_stop(&self) {}
+
+    #[cfg(not(debug_assertions))]
+    fn viz(&self) {}
 
     /// Non-recursive updating of parent `nums` and `ones` values.
     ///
@@ -1065,16 +1089,9 @@ impl DynamicBitVector {
         if let Some(l) = self[node].left {
             if l == child {
                 // was left child
-                if l >= 0 {
-                    // left child is node
-                    let (n, o) = self.full_nums_ones(child);
-                    self[node].nums = n;
-                    self[node].ones = o;
-                } else {
-                    // left child is leaf
-                    self[node].nums = self[l].nums as usize;
-                    self[node].ones = self[l].ones();
-                }
+                let (n, o) = self.full_nums_ones(child);
+                self[node].nums = n;
+                self[node].ones = o;
                 return true;
             }
             // ignore if we came from right child

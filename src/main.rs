@@ -2,7 +2,7 @@
 
 use confertus::commands;
 use confertus::config::Config;
-use confertus::{BitSize, DynamicBitVector, StaticBitVec};
+use confertus::{BitSize, DynBitVec, DynamicBitVector, StaticBitVec};
 use std::env;
 use std::process;
 use std::time::{Duration, Instant};
@@ -30,14 +30,17 @@ use std::time::{Duration, Instant};
 /// - [ ] Extending LeafValue container
 /// - [ ] BP with Range-Min-Max-Tree
 fn main() -> Result<(), &'static str> {
-    dbg!(u64::MAX.rank(true, 0));
-    dbg!(u64::MAX.rank(true, 64));
-    dbg!(cfg!(target_arch = "x86"));
-    dbg!(cfg!(target_arch = "x86_64"));
-    dbg!(cfg!(target_feature = "bmi1"));
-    dbg!(cfg!(target_feature = "bmi2"));
-    println!("{}", 15u64.select(false, 2));
-    println!("{}", 15u64.select(true, 2));
+    #[cfg(debug_assertions)]
+    {
+        dbg!(u64::MAX.rank(true, 0));
+        dbg!(u64::MAX.rank(true, 64));
+        dbg!(cfg!(target_arch = "x86"));
+        dbg!(cfg!(target_arch = "x86_64"));
+        dbg!(cfg!(target_feature = "bmi1"));
+        dbg!(cfg!(target_feature = "bmi2"));
+        println!("{}", 15u64.select(false, 2));
+        println!("{}", 15u64.select(true, 2));
+    }
 
     // time measured and duration with nanosecond precision
     let mut time_total: Duration = Duration::from_millis(0);
@@ -74,10 +77,10 @@ fn main() -> Result<(), &'static str> {
     if config.algo == "bv" {
         if let Ok(mut lines) = commands::read_lines(config.file_in) {
             if let Some(Ok(first)) = lines.next() {
+                #[cfg(debug_assertions)]
                 println!("{:?}", first);
                 let mut idx = first.parse::<usize>().unwrap();
-                let mut rank;
-                let mut sel;
+                #[cfg(debug_assertions)]
                 println!("{:?}", idx);
                 for (i, line) in lines.enumerate() {
                     if idx > 0 {
@@ -89,27 +92,39 @@ fn main() -> Result<(), &'static str> {
                         }
                         idx -= 1;
                     } else if let Ok(comm) = line {
-                        let command: Vec<&str> = comm.split(' ').collect();
+                        let command: Vec<&str> =
+                            comm.split(' ').filter(|&x| !x.is_empty()).collect();
+                        #[cfg(debug_assertions)]
                         println!("{:?}", command);
                         // execute vector commands
                         match command[0] {
                             "insert" => {
-                                dbv = commands::insert(dbv, command)?;
+                                let index = command[1].parse::<usize>().unwrap();
+                                let bit = command[2] != "0";
+                                dbv.insert(index, bit)?;
                             }
                             "delete" => {
-                                dbv = commands::delete(dbv, command)?;
+                                let index = command[1].parse::<usize>().unwrap();
+                                dbv.delete(index)?;
                             }
                             "flip" => {
-                                dbv = commands::flip(dbv, command)?;
+                                let index = command[1].parse::<usize>().unwrap();
+                                dbv.flip(index);
                             }
                             "rank" => {
-                                (rank, dbv) = commands::rank(dbv, command);
+                                let bit = command[1] != "0";
+                                let index = command[2].parse::<usize>().unwrap();
+                                let rank = dbv.rank(bit, index);
+
                                 time_total += Instant::now().duration_since(last_timestamp_cont);
                                 commands::append_file(&config.file_out, rank)?;
                                 last_timestamp_cont = Instant::now();
                             }
                             "select" => {
-                                (sel, dbv) = commands::select(dbv, command);
+                                let bit = command[1] != "0";
+                                let index = command[2].parse::<usize>().unwrap();
+                                let sel = dbv.select(bit, index);
+
                                 time_total += Instant::now().duration_since(last_timestamp_cont);
                                 commands::append_file(&config.file_out, sel)?;
                                 last_timestamp_cont = Instant::now();
@@ -124,7 +139,7 @@ fn main() -> Result<(), &'static str> {
                 }
             }
         }
-    } else {
+    } else if config.algo == "bp" {
         // algo == bp
         if let Ok(lines) = commands::read_lines(config.file_in) {
             for line in lines.flatten() {
@@ -139,6 +154,7 @@ fn main() -> Result<(), &'static str> {
                     _ => panic!("unrecognized command in file"),
                 }
             }
+            println!("This didn't do more than parsing the file actually ...");
         }
     }
     time_total += Instant::now().duration_since(last_timestamp_cont);

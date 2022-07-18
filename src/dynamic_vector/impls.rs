@@ -5,7 +5,7 @@ use std::ops::{Add, Index, IndexMut};
 
 impl BitSize for DynamicBitVector {
     fn bitsize_full(&self) -> usize {
-        448 + self.leafs.len() * 17 * 8 + self.nodes.len() * 325
+        448 + self.leafs.len() * 25 * 8 + self.nodes.len() * 325
     }
 }
 
@@ -128,12 +128,44 @@ impl StaticBitVec for DynamicBitVector {
 
 impl DynBitVec for DynamicBitVector {
     #[inline]
+    #[cfg(debug_assertions)]
+    fn insert(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
+        match self.insert_node(self.root, index, bit) {
+            Err(e) => {
+                let lid = self.apply(Self::leaf_id, index);
+                println!("Insert of {bit} at position {index} failed with '{e}' in L{lid}");
+                self.viz_stop();
+                Err(e)
+            }
+            Ok(()) => Ok(()),
+        }
+    }
+
+    #[inline]
+    #[cfg(not(debug_assertions))]
     fn insert(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
         self.insert_node(self.root, index, bit)?;
         Ok(())
     }
 
     #[inline]
+    #[cfg(debug_assertions)]
+    fn delete(&mut self, index: usize) -> Result<(), &'static str> {
+        let leaf = match self.apply(Self::delete_leaf, index) {
+            Err(e) => {
+                let lid = self.apply(Self::leaf_id, index);
+                println!("Delete at position {index} failed with '{e}' in L{lid}");
+                self.viz_stop();
+                Err(e)
+            }
+            Ok(l) => Ok(l),
+        }?;
+        self.update_left_values(self[leaf].parent, leaf);
+        Ok(())
+    }
+
+    #[inline]
+    #[cfg(not(debug_assertions))]
     fn delete(&mut self, index: usize) -> Result<(), &'static str> {
         let leaf = self.apply(Self::delete_leaf, index)?;
         self.update_left_values(self[leaf].parent, leaf);

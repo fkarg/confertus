@@ -211,35 +211,60 @@ fn insert_2() {
     );
 }
 
+// #[test]
+// WIP
 fn insert_3() {
     let mut d = DynamicBitVector::new();
-    for i in 0..(LeafValue::BITS * 3) {
-        d.insert(0, true).expect("insert failed at {i}");
+    for i in 0..(LeafValue::BITS * 2) {
+        d.insert(d[d.root].nums, true).expect("insert failed at {i}");
     }
     let half = (LeafValue::BITS / 2) as usize;
     assert_eq!(
         d,
         DynamicBitVector {
-            root: 1,
+            root: 0,
             nodes: vec![
-                Node::create(Some(1), Some(-3), Some(-2), half, half, 0),
-                Node::create(None, Some(2), Some(0), half * 4, half * 4, -1),
-                Node::create(Some(1), Some(3), Some(-4), half * 3, half * 3, -1),
-                Node::create(Some(2), Some(-1), Some(-5), half * 2, half * 2, 0),
+                Node::create(None, Some(-1), Some(1), half + 1, half + 1, 1),
+                Node::create(Some(0), Some(-2), Some(-3), half + 3, half + 3, 0),
             ],
             leafs: vec![
                 Leaf::new(0),
-                Leaf::create(3, LeafValue::MAX, (half * 2) as u8),
-                Leaf::create(0, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
-                Leaf::create(0, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
-                Leaf::create(2, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
-                Leaf::create(3, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
+                Leaf::create(0, LeafValue::MAX.overflowing_shr((half -1) as u32).0, (half +1) as u8),
+                Leaf::create(1, LeafValue::MAX.overflowing_shr((half -3) as u32).0, (half +3) as u8),
+                Leaf::create(1, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
             ],
         }
     );
 }
 
+// #[test]
+// WIP
+fn insert_4() {
+    let mut d = DynamicBitVector::new();
+    let half = (LeafValue::BITS / 2) as usize;
+    for i in 0..(LeafValue::BITS * 2 + half as u32) {
+        d.insert(d[d.root].nums, true).expect("insert failed at {i}");
+    }
+    d.viz();
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 0,
+            nodes: vec![
+                Node::create(None, Some(-1), Some(1), half + 1, half + 1, 1),
+                Node::create(Some(0), Some(-2), Some(-3), half + 3, half + 3, 0),
+            ],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(0, LeafValue::MAX.overflowing_shr((half -1) as u32).0, (half +1) as u8),
+                Leaf::create(1, LeafValue::MAX.overflowing_shr((half -3) as u32).0, (half +3) as u8),
+                Leaf::create(1, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
+            ],
+        }
+    );
+}
 
+// WIP
 fn insert_6() {
     let mut d = DynamicBitVector::new();
     for i in 0..(LeafValue::BITS * 6) {

@@ -22,52 +22,6 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-// pub fn execute_mod(&
-
-// pub fn insert(mut vec: DynamicBitVector, command: Vec<&str>) -> Result<DynamicBitVector, &str> {
-pub fn insert(
-    mut vec: DynamicBitVector,
-    command: Vec<&str>,
-) -> Result<DynamicBitVector, &'static str> {
-    let index = command[1].parse::<usize>().unwrap();
-    // let bit = command[2].parse::<bool>().unwrap();
-    let bit = command[2] != "0";
-    vec.insert(index, bit)?;
-    Ok(vec)
-}
-
-pub fn delete(
-    mut vec: DynamicBitVector,
-    command: Vec<&str>,
-) -> Result<DynamicBitVector, &'static str> {
-    let index = command[1].parse::<usize>().unwrap();
-    vec.delete(index)?;
-    Ok(vec)
-}
-
-pub fn flip(
-    mut vec: DynamicBitVector,
-    command: Vec<&str>,
-) -> Result<DynamicBitVector, &'static str> {
-    let index = command[1].parse::<usize>().unwrap();
-    vec.flip(index);
-    Ok(vec)
-}
-
-pub fn rank(mut vec: DynamicBitVector, command: Vec<&str>) -> (usize, DynamicBitVector) {
-    let bit = command[1] != "0";
-    let index = command[2].parse::<usize>().unwrap();
-    let rank = vec.rank(bit, index);
-    (rank, vec)
-}
-
-pub fn select(mut vec: DynamicBitVector, command: Vec<&str>) -> (usize, DynamicBitVector) {
-    let bit = command[1] != "0";
-    let index = command[2].parse::<usize>().unwrap();
-    let sel = vec.select(bit, index);
-    (sel, vec)
-}
-
 /// Write `text` to (non-) existing `filename`, overwriting it.
 pub fn write_file<P>(filename: P, text: &str) -> std::io::Result<()>
 where
@@ -81,8 +35,12 @@ where
 /// exist yet.
 pub fn append_file<P>(filename: P, val: usize) -> Result<(), &'static str>
 where
-    P: AsRef<Path>,
+    P: AsRef<Path> + Copy,
 {
+    match write(filename, "") {
+        Ok(o) => {},
+        Err(e) => return Err("Errored appending to file"),
+    };
     let mut file = OpenOptions::new()
         .write(true)
         .append(true)
@@ -90,12 +48,14 @@ where
         .unwrap();
 
     // write!(file, "\n{}", val).map_err(|e| e.to_string())
-    match write!(file, "\n{}", val) {
+    match write!(file, "{}\n", val) {
         Ok(o) => Ok(o),
         Err(e) => Err("Errored appending to file"),
     }
 }
 
+/// Pause execution until receiving input from stdio
+/// (used to implement e.g. [`DynamicBitVector::viz_stop`]).
 pub fn wait_continue() {
     let mut input_string = String::new();
     stdin().read_line(&mut input_string).ok().unwrap();
