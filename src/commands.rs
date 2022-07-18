@@ -35,13 +35,10 @@ where
 /// exist yet.
 pub fn append_file<P>(filename: P, val: usize) -> Result<(), &'static str>
 where
-    P: AsRef<Path> + Copy,
+    P: AsRef<Path>,
 {
-    match write(filename, "") {
-        Ok(o) => {},
-        Err(e) => return Err("Errored appending to file"),
-    };
     let mut file = OpenOptions::new()
+        .create(true)
         .write(true)
         .append(true)
         .open(filename)
