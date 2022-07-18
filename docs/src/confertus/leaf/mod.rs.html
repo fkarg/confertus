@@ -203,7 +203,7 @@
 <span class="doccomment">/// Container type used to contain bits in [`Leaf`]. Sensible options are [`u64`] and [`u128`].</span>
 <span class="doccomment">/// Might be replaced with custom implementation featuring higher bit container size later (e.g.</span>
 <span class="doccomment">/// 4096, or dynamically dependent on total BitVector capacity).</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LeafValue</span> <span class="op">=</span> <span class="ident">u64</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LeafValue</span> <span class="op">=</span> <span class="ident">u128</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HALF</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">LeafValue::BITS</span> <span class="op">/</span> <span class="number">2</span>;
 

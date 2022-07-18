@@ -130,7 +130,7 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StaticBitVec</span> {
     <span class="kw">type</span> <span class="ident">Intern</span>;
 
-    <span class="doccomment">/// Return number of on-bits in container</span>
+    <span class="doccomment">/// Return number of on-bits in container or on left half for tree-based elements</span>
     <span class="kw">fn</span> <span class="ident">ones</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span>;
 
     <span class="doccomment">/// Access bit value at position `index`</span>

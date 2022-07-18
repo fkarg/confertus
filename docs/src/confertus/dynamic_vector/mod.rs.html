@@ -1078,6 +1078,124 @@
 <span id="1073">1073</span>
 <span id="1074">1074</span>
 <span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
+<span id="1147">1147</span>
+<span id="1148">1148</span>
+<span id="1149">1149</span>
+<span id="1150">1150</span>
+<span id="1151">1151</span>
+<span id="1152">1152</span>
+<span id="1153">1153</span>
+<span id="1154">1154</span>
+<span id="1155">1155</span>
+<span id="1156">1156</span>
+<span id="1157">1157</span>
+<span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
+<span id="1163">1163</span>
+<span id="1164">1164</span>
+<span id="1165">1165</span>
+<span id="1166">1166</span>
+<span id="1167">1167</span>
+<span id="1168">1168</span>
+<span id="1169">1169</span>
+<span id="1170">1170</span>
+<span id="1171">1171</span>
+<span id="1172">1172</span>
+<span id="1173">1173</span>
+<span id="1174">1174</span>
+<span id="1175">1175</span>
+<span id="1176">1176</span>
+<span id="1177">1177</span>
+<span id="1178">1178</span>
+<span id="1179">1179</span>
+<span id="1180">1180</span>
+<span id="1181">1181</span>
+<span id="1182">1182</span>
+<span id="1183">1183</span>
+<span id="1184">1184</span>
+<span id="1185">1185</span>
+<span id="1186">1186</span>
+<span id="1187">1187</span>
+<span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
 </pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::leaf</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::node</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::commands</span>;
@@ -1085,6 +1203,7 @@
 <span class="kw">use</span> <span class="ident">either</span>;
 <span class="kw">use</span> <span class="ident">either</span>::{<span class="ident">Left</span>, <span class="ident">Right</span>};
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::io::Write</span>;
 <span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Add</span>, <span class="ident">Index</span>, <span class="ident">IndexMut</span>};
 
 <span class="kw">type</span> <span class="ident">Side</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">either::Either</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">T</span><span class="op">&gt;</span>;
@@ -1258,6 +1377,7 @@
     <span class="doccomment">/// Assumes that intermediary node does not have children (overwrites `left` child otherwise)</span>
     <span class="doccomment">/// or otherwise relevant information (`nums` and `ones` get overwritten too).</span>
     <span class="kw">fn</span> <span class="ident">insert_intermediary_node</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">child_id</span>: <span class="ident">isize</span>, <span class="ident">int_node_id</span>: <span class="ident">usize</span>) {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
         <span class="macro">println!</span>(<span class="string">&quot;Insert Node {} for {}&quot;</span>, <span class="ident">int_node_id</span>, <span class="ident">child_id</span>);
         <span class="kw">let</span> <span class="ident">parent_id</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">child_id</span>].<span class="ident">parent</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="self">self</span>[<span class="ident">parent_id</span>].<span class="ident">left</span> {
@@ -1310,6 +1430,7 @@
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">/// If right child is [`None`]</span>
     <span class="kw">fn</span> <span class="ident">move_right_child_left</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">usize</span>) {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
         <span class="macro">println!</span>(<span class="string">&quot;Moving R to L in {:?}&quot;</span>, <span class="self">self</span>[<span class="ident">node</span>]);
         <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">right</span>;
         <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">right</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -1471,15 +1592,38 @@
 
     <span class="doccomment">/// Left rotation of [`Node`]s `x` and `z`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Assumes that `z` is right child of `x`, `x.rank == 2` and `z.rank == 1|0`.</span>
-    <span class="doccomment">/// (0 only happens for deletion)</span>
+    <span class="doccomment">/// Assumes that `z` is right child of `x`, `x.rank == 2` and `z.rank == 1|0`</span>
+    <span class="doccomment">/// (0 can only happens after deletion, and correct ranks might not be zero in all situations</span>
+    <span class="doccomment">/// after rotation).</span>
+    <span class="doccomment">/// ```text</span>
+    <span class="doccomment">///         │parent                                          │parent</span>
+    <span class="doccomment">///         │                                                │</span>
+    <span class="doccomment">///       ┌─▼─┐                                            ┌─▼─┐</span>
+    <span class="doccomment">///   left│ X │right                                   left│ Z │right</span>
+    <span class="doccomment">///   ┌───┤   ├───┐                                    ┌───┤   ├───┐</span>
+    <span class="doccomment">///   │   │r:2│   │                                    │   │r:0│   │</span>
+    <span class="doccomment">/// ┌─▼─┐ └───┘ ┌─▼─┐                                ┌─▼─┐ └───┘ ┌─▼─┐</span>
+    <span class="doccomment">/// │   │   left│ Z │right    left rotation      left│ X │right  │   │</span>
+    <span class="doccomment">/// │T1 │   ┌───┤   ├───┐                        ┌───┤   ├───┐   │T4 │</span>
+    <span class="doccomment">/// │   │   │   │r:1│   │     ────────────►      │   │r:0│   │   │   │</span>
+    <span class="doccomment">/// └───┘ ┌─▼─┐ └───┘ ┌─▼─┐                    ┌─▼─┐ └───┘ ┌─▼─┐ └───┘</span>
+    <span class="doccomment">///       │   │       │   │                    │   │       │   │</span>
+    <span class="doccomment">///       │T23│       │T4 │                    │T1 │       │T23│</span>
+    <span class="doccomment">///       │   │       │   │                    │   │       │   │</span>
+    <span class="doccomment">///       └───┘       └───┘                    └───┘       └───┘</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// See also the [wikipedia article on AVL-tree</span>
+    <span class="doccomment">/// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rotate_left</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">z</span>: <span class="ident">usize</span>, <span class="ident">x</span>: <span class="ident">usize</span>) {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="macro">println!</span>(<span class="string">&quot;left-rotate N{x} (x) and N{z} (z, lower)&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trace</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="ident">grand_parent</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">parent</span>;
+        <span class="comment">// update parents</span>
         <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="ident">grand_parent</span>;
-
         <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">z</span>);
 
+        <span class="comment">// move T23</span>
         <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">right</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">left</span>;
         <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">left</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">isize</span>);
 
@@ -1490,79 +1634,122 @@
             <span class="self">self</span>[<span class="ident">grand_parent</span>.<span class="ident">unwrap</span>()].<span class="ident">replace_child_with</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">isize</span>, <span class="ident">z</span> <span class="kw">as</span> <span class="ident">isize</span>);
         }
 
-        <span class="comment">// only possible in case of deletion</span>
-        <span class="kw">if</span> <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">rank</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="number">1</span>;
-            <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
-            <span class="ident">trace</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        } <span class="kw">else</span> {
+        <span class="comment">// zero is only possible after deletion</span>
+        <span class="kw">if</span> <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">rank</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="number">0</span>;
-        }
-
-        <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">nums</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">nums</span>;
-        <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">ones</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">ones</span>;
-
-        <span class="comment">// move right subtree of X</span>
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">right</span>.<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <span class="ident">r</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="comment">// node</span>
-            <span class="self">self</span>[<span class="ident">r</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>);
         } <span class="kw">else</span> {
-            <span class="comment">// leaf</span>
-            <span class="self">self</span>[<span class="ident">r</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="ident">x</span>;
+            <span class="comment">// according to wikipedia</span>
+            <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="number">1</span>;
+            <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
+            <span class="comment">// deletion requires additional tracing of changes</span>
+            <span class="ident">trace</span> <span class="op">=</span> <span class="bool-val">true</span>;
         }
-        <span class="kw">if</span> <span class="ident">trace</span> <span class="op">&amp;&amp;</span> <span class="ident">grand_parent</span>.<span class="ident">is_some</span>() {
-            <span class="self">self</span>.<span class="ident">retrace</span>(<span class="ident">grand_parent</span>.<span class="ident">unwrap</span>(), <span class="op">-</span><span class="number">1</span>);
+
+        <span class="kw">let</span> (<span class="ident">n</span>, <span class="ident">o</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">full_nums_ones</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">isize</span>);
+        <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">nums</span> <span class="op">=</span> <span class="ident">n</span>;
+        <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">ones</span> <span class="op">=</span> <span class="ident">o</span>;
+
+        <span class="comment">// properly set parent of T23 to X</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">right</span> {
+            <span class="comment">// can it be None here?</span>
+            <span class="kw">if</span> <span class="ident">r</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="comment">// node</span>
+                <span class="self">self</span>[<span class="ident">r</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>);
+            } <span class="kw">else</span> {
+                <span class="comment">// leaf</span>
+                <span class="self">self</span>[<span class="ident">r</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="ident">x</span>;
+            }
+        }
+        <span class="kw">if</span> <span class="ident">trace</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">g</span>) <span class="op">=</span> <span class="ident">grand_parent</span> {
+                <span class="self">self</span>.<span class="ident">retrace</span>(<span class="ident">g</span>, <span class="op">-</span><span class="number">1</span>);
+            }
         }
     }
 
-    <span class="doccomment">/// Right rotation of [`Node`]s `x` and `z`.</span>
+    <span class="doccomment">/// Right rotation of [`Node`]s `z` and `x` to reestablish rank-difference invariant.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Assumes that `z` is left child of `x`, `x.rank == 2` and `z.rank == 1|0`.</span>
-    <span class="doccomment">/// (0 only happens for deletion)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rotate_right</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">z</span>: <span class="ident">usize</span>, <span class="ident">x</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
+    <span class="doccomment">/// Assumes that `z` is left child of `x`, `x.rank == 2` and `z.rank == 1|0`</span>
+    <span class="doccomment">/// (0 can only happens after deletion, and correct ranks might not be zero in all situations</span>
+    <span class="doccomment">/// after rotation). We won&#39;t need to recursively update `nums` and `ones, as they won&#39;t</span>
+    <span class="doccomment">/// change from the perspective of `parent`.</span>
+    <span class="doccomment">/// ```text</span>
+    <span class="doccomment">///               │parent                               │parent</span>
+    <span class="doccomment">///               │                                     │</span>
+    <span class="doccomment">///             ┌─▼─┐                                 ┌─▼─┐</span>
+    <span class="doccomment">///         left│ X │right                        left│ Z │right</span>
+    <span class="doccomment">///         ┌───┤   ├───┐                         ┌───┤   ├───┐</span>
+    <span class="doccomment">///         │   │r:2│   │                         │   │r:0│   │</span>
+    <span class="doccomment">///       ┌─▼─┐ └───┘ ┌─▼─┐   right rotation    ┌─▼─┐ └───┘ ┌─▼─┐</span>
+    <span class="doccomment">///   left│ Z │right  │   │                     │   │   left│ X │right</span>
+    <span class="doccomment">///   ┌───┤   ├───┐   │T4 │    ───────────►     │T1 │   ┌───┤   ├───┐</span>
+    <span class="doccomment">///   │   │r:1│   │   │   │                     │   │   │   │r:0│   │</span>
+    <span class="doccomment">/// ┌─▼─┐ └───┘ ┌─▼─┐ └───┘                     └───┘ ┌─▼─┐ └───┘ ┌─▼─┐</span>
+    <span class="doccomment">/// │   │       │   │                                 │   │       │   │</span>
+    <span class="doccomment">/// │T1 │       │T23│                                 │T23│       │T4 │</span>
+    <span class="doccomment">/// │   │       │   │                                 │   │       │   │</span>
+    <span class="doccomment">/// └───┘       └───┘                                 └───┘       └───┘</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// See also the [wikipedia article on AVL-tree</span>
+    <span class="doccomment">/// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rotate_right</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">z</span>: <span class="ident">usize</span>, <span class="ident">x</span>: <span class="ident">usize</span>) {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="macro">println!</span>(<span class="string">&quot;right-rotate N{x} (x) and N{z} (z, lower) &quot;</span>);
+        <span class="comment">// if we need to trace back changes in rank later, which we only might in case of deletion</span>
+        <span class="comment">// (as it might cascade for up to `log n` rotations).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trace</span> <span class="op">=</span> <span class="bool-val">false</span>;
+
+        <span class="comment">// update parent pointers of x and z</span>
         <span class="kw">let</span> <span class="ident">grand_parent</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">parent</span>;
         <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="ident">grand_parent</span>;
-
         <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">z</span>);
 
+        <span class="comment">// moving of T23</span>
         <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">right</span>;
+
         <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">right</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">isize</span>);
 
         <span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">root</span> {
-            <span class="comment">// grand_parent == None</span>
+            <span class="comment">// it means that `grand_parent` was None</span>
             <span class="self">self</span>.<span class="ident">root</span> <span class="op">=</span> <span class="ident">z</span>;
         } <span class="kw">else</span> {
             <span class="self">self</span>[<span class="ident">grand_parent</span>.<span class="ident">unwrap</span>()].<span class="ident">replace_child_with</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">isize</span>, <span class="ident">z</span> <span class="kw">as</span> <span class="ident">isize</span>);
         }
+
         <span class="comment">// only possible in case of deletion</span>
         <span class="kw">if</span> <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">rank</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="number">1</span>; <span class="comment">// ?</span>
-            <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>; <span class="comment">// ?</span>
+            <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="number">1</span>; <span class="comment">// not sure for right rotation</span>
+            <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>; <span class="comment">// not sure for right rotation, maybe switch?</span>
             <span class="ident">trace</span> <span class="op">=</span> <span class="bool-val">true</span>;
         } <span class="kw">else</span> {
             <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">rank</span> <span class="op">=</span> <span class="number">0</span>;
         }
 
-        <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">nums</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">nums</span>;
-        <span class="self">self</span>[<span class="ident">z</span>].<span class="ident">ones</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">ones</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">left</span> {
+            <span class="kw">let</span> (<span class="ident">n</span>, <span class="ident">o</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">full_nums_ones</span>(<span class="ident">l</span>);
+            <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">nums</span> <span class="op">=</span> <span class="ident">n</span>;
+            <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">ones</span> <span class="op">=</span> <span class="ident">o</span>;
+        }
 
-        <span class="comment">// move left subtree of X</span>
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">left</span>.<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <span class="ident">r</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="comment">// node</span>
-            <span class="self">self</span>[<span class="ident">r</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>);
-        } <span class="kw">else</span> {
-            <span class="comment">// leaf</span>
-            <span class="self">self</span>[<span class="ident">r</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="ident">x</span>;
+        <span class="comment">// update parent pointer of T23, which might actually not exist (happened before)</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="macro">println!</span>(<span class="string">&quot;left of {x}: {:?}&quot;</span>, <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">left</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="self">self</span>[<span class="ident">x</span>].<span class="ident">left</span> {
+            <span class="kw">if</span> <span class="ident">l</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="comment">// node</span>
+                <span class="self">self</span>[<span class="ident">l</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>);
+            } <span class="kw">else</span> {
+                <span class="comment">// leaf</span>
+                <span class="self">self</span>[<span class="ident">l</span>].<span class="ident">parent</span> <span class="op">=</span> <span class="ident">x</span>;
+            }
         }
-        <span class="kw">if</span> <span class="ident">trace</span> <span class="op">&amp;&amp;</span> <span class="ident">grand_parent</span>.<span class="ident">is_some</span>() {
-            <span class="self">self</span>.<span class="ident">retrace</span>(<span class="ident">grand_parent</span>.<span class="ident">unwrap</span>(), <span class="op">-</span><span class="number">1</span>);
+        <span class="kw">if</span> <span class="ident">trace</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">g</span>) <span class="op">=</span> <span class="ident">grand_parent</span> {
+                <span class="self">self</span>.<span class="ident">retrace</span>(<span class="ident">g</span>, <span class="op">-</span><span class="number">1</span>);
+            }
         }
-        <span class="macro">todo!</span>(<span class="string">&quot;.rotate_right {}&quot;</span>, <span class="self">self</span>) <span class="comment">// validate</span>
     }
 
     <span class="comment">// BALANCING</span>
@@ -1576,10 +1763,12 @@
     <span class="doccomment">/// - `parent` is [`Node`] with temporary rank / balance factor violation</span>
     <span class="doccomment">/// - `node` is higher child of `parent`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rebalance</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">usize</span>, <span class="ident">parent</span>: <span class="ident">usize</span>) {
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
         <span class="macro">println!</span>(
             <span class="string">&quot;rebalance ranks: parent.r {} node.r {}&quot;</span>,
             <span class="self">self</span>[<span class="ident">parent</span>].<span class="ident">rank</span>, <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">rank</span>
         );
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
         <span class="macro">println!</span>(<span class="string">&quot;rebalance node ids: parent {} node {}&quot;</span>, <span class="ident">parent</span>, <span class="ident">node</span>);
         <span class="comment">// invariance has been broken at `parent`, while `node` is the &#39;higher&#39; child. (unclear</span>
         <span class="comment">// which side)</span>
@@ -1588,9 +1777,11 @@
             <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="ident">node</span> <span class="kw">as</span> <span class="ident">isize</span> {
                 <span class="comment">// node is right child</span>
                 <span class="kw">if</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">rank</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
                     <span class="macro">println!</span>(<span class="string">&quot; Right Right violation&quot;</span>);
                     <span class="self">self</span>.<span class="ident">rotate_left</span>(<span class="ident">node</span>, <span class="ident">parent</span>);
                 } <span class="kw">else</span> {
+                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
                     <span class="macro">println!</span>(<span class="string">&quot; Right Left violation&quot;</span>);
                     <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">left</span>.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">usize</span>;
                     <span class="self">self</span>.<span class="ident">rotate_right</span>(<span class="ident">y</span>, <span class="ident">node</span>);
@@ -1602,9 +1793,11 @@
             <span class="kw">if</span> <span class="ident">l</span> <span class="op">==</span> <span class="ident">node</span> <span class="kw">as</span> <span class="ident">isize</span> {
                 <span class="comment">// node is left child</span>
                 <span class="kw">if</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">rank</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
                     <span class="macro">println!</span>(<span class="string">&quot; Left Left violation&quot;</span>);
                     <span class="self">self</span>.<span class="ident">rotate_right</span>(<span class="ident">node</span>, <span class="ident">parent</span>);
                 } <span class="kw">else</span> {
+                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
                     <span class="macro">println!</span>(<span class="string">&quot; Left Right violation&quot;</span>);
                     <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">right</span>.<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">usize</span>;
                     <span class="self">self</span>.<span class="ident">rotate_left</span>(<span class="ident">y</span>, <span class="ident">node</span>);
@@ -1636,8 +1829,19 @@
     <span class="doccomment">/// Handle inserting `bit` at position `index` in given `leaf`</span>
     <span class="kw">fn</span> <span class="ident">insert_leaf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">leaf</span>: <span class="ident">isize</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">bit</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="comment">// check for leaf full, split, traverse, rebalance, insert if true.</span>
-        <span class="kw">if</span> <span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">nums</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">LeafValue::BITS</span> {
+        <span class="kw">if</span> <span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">nums</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">LeafValue::BITS</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>[<span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">parent</span>].<span class="ident">left</span>.<span class="ident">is_none</span>() {
+            <span class="self">self</span>.<span class="ident">move_right_child_left</span>(<span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">parent</span>);
+
+            <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">split_to_right</span>();
+            <span class="kw">let</span> <span class="ident">leaf_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_right_leaf</span>(<span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">parent</span>);
+            <span class="self">self</span>[<span class="ident">leaf_id</span>].<span class="ident">value</span> <span class="op">=</span> <span class="ident">values</span>;
+            <span class="self">self</span>[<span class="ident">leaf_id</span>].<span class="ident">nums</span> <span class="op">=</span> (<span class="ident">LeafValue::BITS</span> <span class="op">/</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+            <span class="self">self</span>.<span class="ident">update_left_values_only</span>(<span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">parent</span>, <span class="ident">leaf</span>);
+
+            <span class="self">self</span>.<span class="ident">insert_node</span>(<span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">parent</span>, <span class="ident">index</span>, <span class="ident">bit</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">nums</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">LeafValue::BITS</span> {
             <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">split_leaf</span>(<span class="ident">leaf</span>);
+            <span class="comment">// try insertion at the newly created node</span>
             <span class="self">self</span>.<span class="ident">insert_node</span>(<span class="ident">node</span>, <span class="ident">index</span>, <span class="ident">bit</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
             <span class="self">self</span>[<span class="ident">leaf</span>].<span class="ident">insert</span>(<span class="ident">index</span>, <span class="ident">bit</span>)<span class="question-mark">?</span>;
@@ -1645,7 +1849,9 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Handle inserting `bit` at position `index` in given `node`</span>
+    <span class="doccomment">/// Handle inserting `bit` at position `index` in given `node`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Not to be confused with `?`, which is for inserting a `Node`.</span>
     <span class="kw">fn</span> <span class="ident">insert_node</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">usize</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">bit</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="comment">// update `nums` and `ones` values during descent</span>
         <span class="kw">if</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">index</span> {
@@ -1721,10 +1927,10 @@
             <span class="comment">// enter right side</span>
             <span class="kw">let</span> <span class="ident">right_id</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">right</span>.<span class="ident">unwrap</span>();
             <span class="kw">if</span> <span class="ident">right_id</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="self">self</span>.<span class="ident">delete_node</span>(<span class="ident">right_id</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">index</span> <span class="op">-</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span>)<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">delete_node</span>(<span class="ident">right_id</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">index</span> <span class="op">-</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span>);
             } <span class="kw">else</span> {
                 <span class="comment">// leaf</span>
-                <span class="self">self</span>.<span class="ident">delete_leaf</span>(<span class="ident">right_id</span>, <span class="ident">index</span> <span class="op">-</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span>)<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">delete_leaf</span>(<span class="ident">right_id</span>, <span class="ident">index</span> <span class="op">-</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span>);
             }
         } <span class="kw">else</span> {
             <span class="comment">// enter left side</span>
@@ -1735,15 +1941,12 @@
             <span class="comment">// }</span>
             <span class="comment">// // TODO: welp, information to update nums and bits not really available here.</span>
             <span class="kw">if</span> <span class="ident">left_id</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="self">self</span>.<span class="ident">delete_node</span>(<span class="ident">left_id</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">index</span>)<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">delete_node</span>(<span class="ident">left_id</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">index</span>);
             } <span class="kw">else</span> {
                 <span class="comment">// leaf</span>
-                <span class="self">self</span>.<span class="ident">delete_leaf</span>(<span class="ident">left_id</span>, <span class="ident">index</span>)<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">delete_leaf</span>(<span class="ident">left_id</span>, <span class="ident">index</span>);
             }
         }
-        <span class="self">self</span>.<span class="ident">viz_stop</span>();
-        <span class="macro">todo!</span>(<span class="string">&quot;.delete_node {}&quot;</span>, <span class="self">self</span>);
-        <span class="comment">// Ok(())</span>
     }
 
     <span class="comment">// CLOSEST_NEIGHBOR_*</span>
@@ -2050,40 +2253,61 @@
 
     <span class="comment">// MISC</span>
 
-    <span class="doccomment">/// Output current tree state to file for visualization and pause execution until input is</span>
+    <span class="doccomment">/// Output current tree state to file for visualization and pause execution until some input is</span>
     <span class="doccomment">/// given</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
     <span class="kw">fn</span> <span class="ident">viz_stop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">println!</span>(<span class="string">&quot;stopped for visualization. to continue: [Enter]&quot;</span>);
-        <span class="ident">commands::write_file</span>(<span class="string">&quot;tmp.txt&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">dotviz</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
+        <span class="self">self</span>.<span class="ident">viz</span>();
+        <span class="macro">print!</span>(<span class="string">&quot;stopped for visualization. continue by pressing [Enter]&quot;</span>);
+        <span class="ident">std::io::stdout</span>().<span class="ident">flush</span>().<span class="ident">unwrap</span>();
         <span class="ident">commands::wait_continue</span>();
         <span class="macro">println!</span>();
     }
 
-    <span class="doccomment">/// Recursively update parent values in case of left-child modification of `nums` or `ones`,</span>
-    <span class="doccomment">/// coming from `child`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_left_values</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">usize</span>, <span class="ident">child</span>: <span class="ident">isize</span>) {
+    <span class="doccomment">/// Write current tree state to file for visualization, but don&#39;t pause execution</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">viz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="ident">commands::write_file</span>(<span class="string">&quot;tmp.txt&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">dotviz</span>(<span class="number">0</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">println!</span>(<span class="string">&quot;wrote current tree state to &#39;tmp.txt&#39;&quot;</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">debug_assertions</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">viz_stop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">debug_assertions</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">viz</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {}
+
+    <span class="doccomment">/// Non-recursive updating of parent `nums` and `ones` values.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns if `child` is left side child of `node` or not.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_left_values_only</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">usize</span>, <span class="ident">child</span>: <span class="ident">isize</span>) -&gt; <span class="ident">bool</span> {
         <span class="comment">// check if child is left child</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">left</span> {
             <span class="kw">if</span> <span class="ident">l</span> <span class="op">==</span> <span class="ident">child</span> {
                 <span class="comment">// was left child</span>
-                <span class="kw">if</span> <span class="ident">l</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="comment">// left child is node</span>
-                    <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">l</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">nums</span>;
-                    <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">ones</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">l</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">ones</span>;
-                    <span class="comment">// add values from the right child of `l`</span>
-                    <span class="self">self</span>.<span class="ident">right_child_values</span>(<span class="ident">node</span>, <span class="self">self</span>[<span class="ident">l</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">right</span>);
-                } <span class="kw">else</span> {
-                    <span class="comment">// left child is leaf</span>
-                    <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">l</span>].<span class="ident">nums</span> <span class="kw">as</span> <span class="ident">usize</span>;
-                    <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">ones</span> <span class="op">=</span> <span class="self">self</span>[<span class="ident">l</span>].<span class="ident">ones</span>();
-                }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">parent</span> {
-                    <span class="self">self</span>.<span class="ident">update_left_values</span>(<span class="ident">p</span>, <span class="ident">node</span> <span class="kw">as</span> <span class="ident">isize</span>)
-                }
+                <span class="kw">let</span> (<span class="ident">n</span>, <span class="ident">o</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">full_nums_ones</span>(<span class="ident">child</span>);
+                <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span> <span class="op">=</span> <span class="ident">n</span>;
+                <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">ones</span> <span class="op">=</span> <span class="ident">o</span>;
+                <span class="kw">return</span> <span class="bool-val">true</span>;
+            }
+            <span class="comment">// ignore if we came from right child</span>
+        }
+        <span class="comment">// no left child? no values to update</span>
+        <span class="bool-val">false</span>
+    }
+
+    <span class="doccomment">/// Recursively update parent values in case of left-child modification of `nums` or `ones`,</span>
+    <span class="doccomment">/// coming from `child`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_left_values</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">usize</span>, <span class="ident">child</span>: <span class="ident">isize</span>) {
+        <span class="comment">// do most of actual work first</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">update_left_values_only</span>(<span class="ident">node</span>, <span class="ident">child</span>) {
+            <span class="comment">// recurse if values got updated and parent exists</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">parent</span> {
+                <span class="self">self</span>.<span class="ident">update_left_values</span>(<span class="ident">p</span>, <span class="ident">node</span> <span class="kw">as</span> <span class="ident">isize</span>);
             }
         }
-        <span class="comment">// everything else (was right child) doesn&#39;t matter</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2093,40 +2317,6 @@
         } <span class="kw">else</span> {
             <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">ones</span> <span class="op">=</span> <span class="number">0</span>;
-        }
-    }
-
-    <span class="doccomment">/// Graphically, update values `nums` and `ones` from `N1` (`to_update`) by adding values from</span>
-    <span class="doccomment">/// `N2` (which happened in `update_left_values`) and `N3` (`left_right_child`), which is</span>
-    <span class="doccomment">/// happening here.</span>
-    <span class="doccomment">/// ```text</span>
-    <span class="doccomment">///                           ┌───┐</span>
-    <span class="doccomment">///                           │   │</span>
-    <span class="doccomment">///                        ┌──┤N1 │</span>
-    <span class="doccomment">///                        │  │num│</span>
-    <span class="doccomment">///                        │  └───┘</span>
-    <span class="doccomment">///                      ┌─▼─┐</span>
-    <span class="doccomment">///                      │   │</span>
-    <span class="doccomment">///                      │N2 ├───┐</span>
-    <span class="doccomment">///                      │num│   │</span>
-    <span class="doccomment">///                      └───┘ ┌─▼─┐</span>
-    <span class="doccomment">///                            │   │</span>
-    <span class="doccomment">///                            │N3 │</span>
-    <span class="doccomment">///                            │num│</span>
-    <span class="doccomment">///                            └───┘</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">right_child_values</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">to_update</span>: <span class="ident">usize</span>, <span class="ident">left_right_child</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="ident">left_right_child</span> {
-            <span class="kw">if</span> <span class="ident">r</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="comment">// node</span>
-                <span class="self">self</span>[<span class="ident">to_update</span>].<span class="ident">nums</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>[<span class="ident">r</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">nums</span>;
-                <span class="self">self</span>[<span class="ident">to_update</span>].<span class="ident">ones</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>[<span class="ident">r</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">ones</span>;
-            } <span class="kw">else</span> {
-                <span class="comment">// leaf</span>
-                <span class="self">self</span>[<span class="ident">to_update</span>].<span class="ident">nums</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>[<span class="ident">r</span>].<span class="ident">nums</span> <span class="kw">as</span> <span class="ident">usize</span>;
-                <span class="self">self</span>[<span class="ident">to_update</span>].<span class="ident">ones</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>[<span class="ident">r</span>].<span class="ident">ones</span>();
-            }
         }
     }
 
@@ -2142,9 +2332,55 @@
         <span class="kw">let</span> <span class="ident">leaf_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_right_leaf</span>(<span class="ident">new_node</span>);
         <span class="self">self</span>[<span class="ident">leaf_id</span>].<span class="ident">value</span> <span class="op">=</span> <span class="ident">values</span>;
         <span class="self">self</span>[<span class="ident">leaf_id</span>].<span class="ident">nums</span> <span class="op">=</span> (<span class="ident">LeafValue::BITS</span> <span class="op">/</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+        <span class="self">self</span>.<span class="ident">update_left_values_only</span>(<span class="ident">new_node</span>, <span class="ident">leaf</span>);
 
         <span class="comment">// making leaf right child of new Node</span>
         <span class="ident">new_node</span>
+    }
+
+    <span class="comment">// MISC</span>
+
+    <span class="doccomment">/// Return the id of leaf for `index`</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">leaf_id</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">leaf</span>: <span class="ident">isize</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">isize</span> {
+        <span class="ident">leaf</span>
+    }
+
+    <span class="doccomment">/// Return `nums` and `ones` of `child` (`N2`) from both its left and right subtrees.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Graphically, return fully redundant indexing support values `nums` and `ones` for `N1` by</span>
+    <span class="doccomment">/// adding left-values from `N2` and `N3`, as well as right-values from `N3` (recursively until</span>
+    <span class="doccomment">/// leaf).</span>
+    <span class="doccomment">/// ```text</span>
+    <span class="doccomment">///                           ┌───┐</span>
+    <span class="doccomment">///                           │   │</span>
+    <span class="doccomment">///                        ┌──┤N1 │</span>
+    <span class="doccomment">///                        │  │num│</span>
+    <span class="doccomment">///                      ┌─▼─┐└───┘</span>
+    <span class="doccomment">///                      │   │</span>
+    <span class="doccomment">///                      │N2 ├───┐</span>
+    <span class="doccomment">///                      │num│   │</span>
+    <span class="doccomment">///                      └───┘ ┌─▼─┐</span>
+    <span class="doccomment">///                            │   │</span>
+    <span class="doccomment">///                            │N3 │</span>
+    <span class="doccomment">///                            │num│</span>
+    <span class="doccomment">///                            └───┘</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">full_nums_ones</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">child</span>: <span class="ident">isize</span>) -&gt; (<span class="ident">usize</span>, <span class="ident">usize</span>) {
+        <span class="kw">if</span> <span class="ident">child</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">child</span> <span class="kw">as</span> <span class="ident">usize</span>;
+            <span class="comment">// node</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">right</span> {
+                <span class="kw">let</span> (<span class="ident">n</span>, <span class="ident">o</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">full_nums_ones</span>(<span class="ident">r</span>);
+                <span class="kw">return</span> (<span class="ident">n</span> <span class="op">+</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span>, <span class="ident">o</span> <span class="op">+</span> <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">ones</span>);
+            } <span class="kw">else</span> {
+                <span class="kw">return</span> (<span class="self">self</span>[<span class="ident">node</span>].<span class="ident">nums</span>, <span class="self">self</span>[<span class="ident">node</span>].<span class="ident">ones</span>);
+            }
+        } <span class="kw">else</span> {
+            <span class="comment">// leaf</span>
+            <span class="kw">return</span> (<span class="self">self</span>[<span class="ident">child</span>].<span class="ident">nums</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="self">self</span>[<span class="ident">child</span>].<span class="ident">ones</span>());
+        }
     }
 }
 

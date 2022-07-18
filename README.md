@@ -48,14 +48,17 @@ $ rustup default stable
 $ # Or, in case of a previous rust install, update with:
 $ rustup update
 
-$ # Build and run with (debug)
-$ cargo run <args>
+$ # Build and open documentation locally
+$ cargo doc --open
+
+$ # Build and run (debug, provides additional information on execution)
+$ cargo run [bp|bv] input_file output_file
 
 $ # Run tests
 $ cargo test
 
 $ # Build and run (optimized)
-$ RUSTFLAGS="-C target-cpu=native" cargo run --release <args>
+$ RUSTFLAGS="-C target-cpu=native" cargo run --release [bp|bv] input_file output_file
 ```
 
 ## Dependencies

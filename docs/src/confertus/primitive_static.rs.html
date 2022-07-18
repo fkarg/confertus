@@ -476,6 +476,29 @@
 <span id="471">471</span>
 <span id="472">472</span>
 <span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::traits::StaticBitVec</span>;
 <span class="kw">use</span> <span class="ident">core::arch::x86_64</span>::{<span class="ident">_pdep_u64</span>, <span class="ident">_popcnt64</span>, <span class="ident">_tzcnt_u64</span>};
 
@@ -770,7 +793,10 @@
             <span class="comment">// only move by u64::BITS instead of u128::BITS to cap left side away in cast to i64</span>
             <span class="ident">_popcnt64</span>(<span class="ident">array</span>.<span class="ident">overflowing_shl</span>(<span class="ident">u64::BITS</span> <span class="op">-</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="number">0</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>
         } <span class="kw">else</span> {
-            <span class="ident">_popcnt64</span>(<span class="ident">array</span>.<span class="ident">overflowing_shl</span>(<span class="ident">u128::BITS</span> <span class="op">-</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="number">0</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>
+            <span class="comment">// full right half first</span>
+            <span class="ident">_popcnt64</span>(<span class="ident">array</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span>
+            <span class="comment">// plus left half until index, and then move right</span>
+            <span class="ident">_popcnt64</span>(<span class="ident">array</span>.<span class="ident">overflowing_shl</span>(<span class="ident">u128::BITS</span> <span class="op">-</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="number">0</span>.<span class="ident">overflowing_shr</span>(<span class="number">64</span>).<span class="number">0</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>
         }
     }
 }
@@ -829,6 +855,26 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">ones_u64_3</span>() {
         <span class="macro">assert_eq!</span>(<span class="number">7u64</span>.<span class="ident">ones</span>(), <span class="number">3</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">ones_u128_1</span>() {
+        <span class="macro">assert_eq!</span>(<span class="number">4u128</span>.<span class="ident">ones</span>(), <span class="number">1</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">ones_u128_2</span>() {
+        <span class="macro">assert_eq!</span>(<span class="number">5u128</span>.<span class="ident">ones</span>(), <span class="number">2</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">ones_u128_3</span>() {
+        <span class="macro">assert_eq!</span>(<span class="number">7u128</span>.<span class="ident">ones</span>(), <span class="number">3</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">ones_u128_4</span>() {
+        <span class="macro">assert_eq!</span>((<span class="ident">u128::MAX</span> <span class="op">-</span> <span class="number">7</span>).<span class="ident">ones</span>(), (<span class="ident">u128::BITS</span> <span class="op">-</span> <span class="number">3</span>) <span class="kw">as</span> <span class="ident">usize</span>);
     }
 
     <span class="doccomment">/// Test if generated number with specific number of ones really has them</span>
