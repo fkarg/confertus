@@ -50,12 +50,14 @@ impl fmt::Display for DynamicBitVector {
 impl Index<usize> for DynamicBitVector {
     type Output = Node;
 
+    #[inline]
     fn index(&self, index: usize) -> &Self::Output {
         &self.nodes[index]
     }
 }
 
 impl IndexMut<usize> for DynamicBitVector {
+    #[inline]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index]
     }
@@ -69,6 +71,7 @@ impl IndexMut<usize> for DynamicBitVector {
 impl Index<isize> for DynamicBitVector {
     type Output = Leaf;
 
+    #[inline]
     fn index(&self, index: isize) -> &Self::Output {
         let uidx = if index < 0 {
             -index as usize
@@ -80,6 +83,7 @@ impl Index<isize> for DynamicBitVector {
 }
 
 impl IndexMut<isize> for DynamicBitVector {
+    #[inline]
     fn index_mut(&mut self, index: isize) -> &mut Self::Output {
         let uidx = if index < 0 {
             -index as usize
