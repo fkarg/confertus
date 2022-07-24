@@ -62,9 +62,6 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
 
@@ -102,20 +99,17 @@
 <span class="doccomment">/// exist yet.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">append_file</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">filename</span>: <span class="ident">P</span>, <span class="ident">val</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span>,
+    <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>,
 {
-    <span class="kw">match</span> <span class="ident">write</span>(<span class="ident">filename</span>, <span class="string">&quot;&quot;</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">o</span>) =&gt; {},
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Errored appending to file&quot;</span>),
-    };
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">OpenOptions::new</span>()
+        .<span class="ident">create</span>(<span class="bool-val">true</span>)
         .<span class="ident">write</span>(<span class="bool-val">true</span>)
         .<span class="ident">append</span>(<span class="bool-val">true</span>)
         .<span class="ident">open</span>(<span class="ident">filename</span>)
         .<span class="ident">unwrap</span>();
 
     <span class="comment">// write!(file, &quot;\n{}&quot;, val).map_err(|e| e.to_string())</span>
-    <span class="kw">match</span> <span class="macro">write!</span>(<span class="ident">file</span>, <span class="string">&quot;{}\n&quot;</span>, <span class="ident">val</span>) {
+    <span class="kw">match</span> <span class="macro">writeln!</span>(<span class="ident">file</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">val</span>) {
         <span class="prelude-val">Ok</span>(<span class="ident">o</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">o</span>),
         <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Errored appending to file&quot;</span>),
     }
@@ -128,5 +122,5 @@
     <span class="ident">stdin</span>().<span class="ident">read_line</span>(<span class="kw-2">&amp;mut</span> <span class="ident">input_string</span>).<span class="ident">ok</span>().<span class="ident">unwrap</span>();
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="confertus" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="confertus" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
 </body></html>

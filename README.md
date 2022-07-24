@@ -11,7 +11,7 @@ install it via `cargo install --path .`).
 - `input_file` is a file containing a number of line-by-line commands.
     - For `bv`, the first line specifies a number `n` of elements to push, and
       the following `n` lines (being `1` or `0`) the bit to insert.
-    - Example input files can be found at the [lecture page](https://algo2.iti.kit.edu/4264.php).
+    - Example input files can be found at the [lecture page][lecture].
 - `output_file` may or may not exist beforehand, but will be overwritten if it does.
 
 
@@ -68,19 +68,29 @@ $ RUSTFLAGS="-C target-cpu=native" cargo run --release [bp|bv] input_file output
 ## Development-Dependencies
 These are dependencies required to execute tests, not for running the binary itself.
 
-- `pretty_assertions`: visualization of differences in failed assertions, useful for debugging
+- `pretty_assertions`: improved visualization of differences in failed
+  assertions, useful for debugging
 - `quickcheck`: rust-reimplementation of popular eponymous haskell-based,
   strongly heuristic property-based fuzzing testing library
 - `quickcheck_macros`: additional macros for `quickcheck`.
 - `test-case`: macros for generating parametricized tests (unused?)
-- `rand`: useful access to a random number generator for tests. It has been
+- `rand`: access to a random number generator for tests. It has been
   suggested for integration in `std`, but that hasn't happened yet.
 
 I recommend running `cargo watch` on a terminal nearby during active
 development. It runs `cargo check` on filechange.
+
+## Remarks on usage
+This project is an inefficient, incomplete and unsound implementation of a
+dynamic bit vector as part of a [university lecture][lecture] requirement.
+Again, it is not complete and contains numerous bugs. I recommend using
+established implementations such as [`bitvec`](https://docs.rs/bitvec) and
+[`succinct`](https://docs.rs/succinct).
+
 
 
 [docs]: https://www.fkarg.me/confertus/docs/confertus/
 [traits]: https://www.fkarg.me/confertus/docs/confertus/traits/index.html
 [bv]: https://www.fkarg.me/confertus/docs/confertus/dynamic_vector/struct.DynamicBitVector.html
 [either]: https://docs.rs/either/latest/either/index.html
+[lecture]: https://algo2.iti.kit.edu/4264.php

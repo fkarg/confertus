@@ -499,6 +499,25 @@
 <span id="494">494</span>
 <span id="495">495</span>
 <span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::traits::StaticBitVec</span>;
 <span class="kw">use</span> <span class="ident">core::arch::x86_64</span>::{<span class="ident">_pdep_u64</span>, <span class="ident">_popcnt64</span>, <span class="ident">_tzcnt_u64</span>};
 
@@ -507,21 +526,25 @@
 <span class="kw">impl</span> <span class="ident">StaticBitVec</span> <span class="kw">for</span> <span class="ident">bool</span> {
     <span class="kw">type</span> <span class="ident">Intern</span> <span class="op">=</span> <span class="ident">bool</span>;
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">ones</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">access</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">assert!</span>(<span class="ident">index</span> <span class="op">==</span> <span class="number">0</span>);
         <span class="kw-2">*</span><span class="self">self</span>
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">rank</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         <span class="macro">assert!</span>(<span class="ident">index</span> <span class="op">==</span> <span class="number">0</span>);
         <span class="comment">// actually correct implementation</span>
         <span class="number">0</span>
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         <span class="macro">assert!</span>(<span class="ident">n</span> <span class="op">==</span> <span class="number">0</span>);
         <span class="macro">assert!</span>(<span class="ident">bit</span> <span class="op">==</span> <span class="kw-2">*</span><span class="self">self</span>);
@@ -529,6 +552,7 @@
         <span class="number">0</span>
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Intern</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
@@ -537,22 +561,27 @@
 <span class="kw">impl</span> <span class="ident">StaticBitVec</span> <span class="kw">for</span> <span class="ident">u8</span> {
     <span class="kw">type</span> <span class="ident">Intern</span> <span class="op">=</span> <span class="ident">u8</span>;
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">ones</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">ones</span>()
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">access</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">access</span>(<span class="ident">index</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">rank</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">rank</span>(<span class="ident">bit</span>, <span class="ident">index</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">select</span>(<span class="ident">bit</span>, <span class="ident">n</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Intern</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
@@ -561,22 +590,27 @@
 <span class="kw">impl</span> <span class="ident">StaticBitVec</span> <span class="kw">for</span> <span class="ident">u16</span> {
     <span class="kw">type</span> <span class="ident">Intern</span> <span class="op">=</span> <span class="ident">u16</span>;
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">ones</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">ones</span>()
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">access</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">access</span>(<span class="ident">index</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">rank</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">rank</span>(<span class="ident">bit</span>, <span class="ident">index</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">select</span>(<span class="ident">bit</span>, <span class="ident">n</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Intern</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
@@ -585,22 +619,27 @@
 <span class="kw">impl</span> <span class="ident">StaticBitVec</span> <span class="kw">for</span> <span class="ident">u32</span> {
     <span class="kw">type</span> <span class="ident">Intern</span> <span class="op">=</span> <span class="ident">u32</span>;
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">ones</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">ones</span>()
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">access</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">access</span>(<span class="ident">index</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">rank</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">rank</span>(<span class="ident">bit</span>, <span class="ident">index</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">select</span>(<span class="ident">bit</span>, <span class="ident">n</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Intern</span> {
         <span class="kw-2">*</span><span class="self">self</span>
     }
@@ -615,6 +654,7 @@
 
 <span class="kw">impl</span> <span class="ident">UnsafeBitVec</span> <span class="kw">for</span> <span class="ident">u64</span> {
     <span class="doccomment">/// Fallback implementation of `select`, not dependent on any specific architecture</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
         <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>,
         <span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;bmi1&quot;</span>,
@@ -670,16 +710,14 @@
     <span class="doccomment">/// Performant implementation of `rank` for `x86_64` architectures (3 instructions).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Assumes `index` to be in the range of `0..63`.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">rank_internal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">if</span> <span class="ident">bit</span> {
-            <span class="ident">_popcnt64</span>(<span class="self">self</span>.<span class="ident">overflowing_shl</span>(<span class="ident">u64::BITS</span> <span class="op">-</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="number">0</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>
-        } <span class="kw">else</span> {
-            <span class="ident">_popcnt64</span>((<span class="op">!</span><span class="self">self</span>).<span class="ident">overflowing_shl</span>(<span class="ident">u64::BITS</span> <span class="op">-</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="number">0</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>
-        }
+        <span class="ident">_popcnt64</span>({<span class="kw">if</span> <span class="ident">bit</span> { <span class="kw-2">*</span><span class="self">self</span> } <span class="kw">else</span> { <span class="op">!</span><span class="self">self</span> }}.<span class="ident">overflowing_shl</span>(<span class="ident">u64::BITS</span> <span class="op">-</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="number">0</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="doccomment">/// Fallback implementation of `rank`, not depending on any specific architecture</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>))]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">rank_internal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">if</span> <span class="ident">bit</span> {
@@ -699,7 +737,7 @@
 <span class="kw">impl</span> <span class="ident">StaticBitVec</span> <span class="kw">for</span> <span class="ident">u64</span> {
     <span class="kw">type</span> <span class="ident">Intern</span> <span class="op">=</span> <span class="ident">u64</span>;
 
-    <span class="doccomment">/// TODO: use _popcnt64 für `x86_64` (just for i64?)</span>
+    <span class="comment">// TODO: use _popcnt64 für `x86_64` (just for i64?)</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">ones</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">rank</span>(<span class="bool-val">true</span>, <span class="ident"><span class="self">Self</span>::BITS</span> <span class="kw">as</span> <span class="ident">usize</span>)
@@ -778,9 +816,9 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>))]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">rank_internal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">bool</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">if</span> <span class="ident">bit</span> {
-            (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">count_ones</span>() <span class="kw">as</span> <span class="ident">usize</span>
+            (<span class="self">self</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">u128::BITS</span> <span class="op">-</span> <span class="ident">index</span>) <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">count_ones</span>() <span class="kw">as</span> <span class="ident">usize</span>
         } <span class="kw">else</span> {
-            ((<span class="op">!</span><span class="self">self</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">count_ones</span>() <span class="kw">as</span> <span class="ident">usize</span>
+            ((<span class="op">!</span><span class="self">self</span>) <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">u128::BITS</span> <span class="op">-</span> <span class="ident">index</span>) <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">count_ones</span>() <span class="kw">as</span> <span class="ident">usize</span>
         }
     }
 
@@ -996,5 +1034,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="confertus" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="confertus" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
 </body></html>
