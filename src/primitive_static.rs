@@ -6,21 +6,25 @@ use core::arch::x86_64::{_pdep_u64, _popcnt64, _tzcnt_u64};
 impl StaticBitVec for bool {
     type Intern = bool;
 
+    #[inline]
     fn ones(&self) -> usize {
         *self as usize
     }
 
+    #[inline]
     fn access(&self, index: usize) -> bool {
         assert!(index == 0);
         *self
     }
 
+    #[inline]
     fn rank(&self, bit: bool, index: usize) -> usize {
         assert!(index == 0);
         // actually correct implementation
         0
     }
 
+    #[inline]
     fn select(&self, bit: bool, n: usize) -> usize {
         assert!(n == 0);
         assert!(bit == *self);
@@ -28,6 +32,7 @@ impl StaticBitVec for bool {
         0
     }
 
+    #[inline]
     fn values(&self) -> Self::Intern {
         *self
     }
@@ -36,22 +41,27 @@ impl StaticBitVec for bool {
 impl StaticBitVec for u8 {
     type Intern = u8;
 
+    #[inline]
     fn ones(&self) -> usize {
         (*self as u64).ones()
     }
 
+    #[inline]
     fn access(&self, index: usize) -> bool {
         (*self as u64).access(index)
     }
 
+    #[inline]
     fn rank(&self, bit: bool, index: usize) -> usize {
         (*self as u64).rank(bit, index)
     }
 
+    #[inline]
     fn select(&self, bit: bool, n: usize) -> usize {
         (*self as u64).select(bit, n)
     }
 
+    #[inline]
     fn values(&self) -> Self::Intern {
         *self
     }
@@ -60,22 +70,27 @@ impl StaticBitVec for u8 {
 impl StaticBitVec for u16 {
     type Intern = u16;
 
+    #[inline]
     fn ones(&self) -> usize {
         (*self as u64).ones()
     }
 
+    #[inline]
     fn access(&self, index: usize) -> bool {
         (*self as u64).access(index)
     }
 
+    #[inline]
     fn rank(&self, bit: bool, index: usize) -> usize {
         (*self as u64).rank(bit, index)
     }
 
+    #[inline]
     fn select(&self, bit: bool, n: usize) -> usize {
         (*self as u64).select(bit, n)
     }
 
+    #[inline]
     fn values(&self) -> Self::Intern {
         *self
     }
@@ -84,22 +99,27 @@ impl StaticBitVec for u16 {
 impl StaticBitVec for u32 {
     type Intern = u32;
 
+    #[inline]
     fn ones(&self) -> usize {
         (*self as u64).ones()
     }
 
+    #[inline]
     fn access(&self, index: usize) -> bool {
         (*self as u64).access(index)
     }
 
+    #[inline]
     fn rank(&self, bit: bool, index: usize) -> usize {
         (*self as u64).rank(bit, index)
     }
 
+    #[inline]
     fn select(&self, bit: bool, n: usize) -> usize {
         (*self as u64).select(bit, n)
     }
 
+    #[inline]
     fn values(&self) -> Self::Intern {
         *self
     }
@@ -114,6 +134,7 @@ trait UnsafeBitVec {
 
 impl UnsafeBitVec for u64 {
     /// Fallback implementation of `select`, not dependent on any specific architecture
+    #[inline]
     #[cfg(not(all(
         target_arch = "x86_64",
         target_feature = "bmi1",
@@ -169,16 +190,14 @@ impl UnsafeBitVec for u64 {
     /// Performant implementation of `rank` for `x86_64` architectures (3 instructions).
     ///
     /// Assumes `index` to be in the range of `0..63`.
+    #[inline]
     #[cfg(target_arch = "x86_64")]
     unsafe fn rank_internal(&self, bit: bool, index: usize) -> usize {
-        if bit {
-            _popcnt64(self.overflowing_shl(u64::BITS - index as u32).0 as i64) as usize
-        } else {
-            _popcnt64((!self).overflowing_shl(u64::BITS - index as u32).0 as i64) as usize
-        }
+        _popcnt64({if bit { *self } else { !self }}.overflowing_shl(u64::BITS - index as u32).0 as i64) as usize
     }
 
     /// Fallback implementation of `rank`, not depending on any specific architecture
+    #[inline]
     #[cfg(not(target_arch = "x86_64"))]
     unsafe fn rank_internal(&self, bit: bool, index: usize) -> usize {
         if bit {
@@ -198,7 +217,7 @@ impl UnsafeBitVec for u64 {
 impl StaticBitVec for u64 {
     type Intern = u64;
 
-    /// TODO: use _popcnt64 für `x86_64` (just for i64?)
+    // TODO: use _popcnt64 für `x86_64` (just for i64?)
     #[inline]
     fn ones(&self) -> usize {
         self.rank(true, Self::BITS as usize)

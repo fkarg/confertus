@@ -66,6 +66,7 @@ impl DynamicBitVector {
         }
     }
 
+    #[inline]
     fn get_leaf(&self, leaf: isize, index: usize) -> bool {
         self[leaf].access(index)
     }
@@ -79,6 +80,7 @@ impl DynamicBitVector {
     ///
     /// # Panics
     /// If tree invariances are violated
+    #[inline]
     pub fn apply<T>(
         &mut self,
         mut f: impl FnMut(&mut DynamicBitVector, isize, usize) -> T,
@@ -123,6 +125,7 @@ impl DynamicBitVector {
     ///
     /// # Panics
     /// If tree invariances are violated
+    #[inline]
     pub fn apply_bitop<T>(
         &self,
         mut f: impl FnMut(&DynamicBitVector, isize, usize, bool) -> T,
