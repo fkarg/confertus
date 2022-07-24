@@ -277,9 +277,9 @@ impl UnsafeBitVec for u128 {
     #[cfg(not(target_arch = "x86_64"))]
     unsafe fn rank_internal(&self, bit: bool, index: usize) -> usize {
         if bit {
-            (self >> index as u32).count_ones() as usize
+            (self << (u128::BITS - index) as u32).count_ones() as usize
         } else {
-            ((!self) >> index as u32).count_ones() as usize
+            ((!self) << (u128::BITS - index) as u32).count_ones() as usize
         }
     }
 
