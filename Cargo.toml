@@ -10,7 +10,9 @@ edition = "2021"
 
 
 [profile.release]
+codegen-units = 1
 lto = true
+panic = "abort"
 
 [dependencies]
 either = "1.7.0"
