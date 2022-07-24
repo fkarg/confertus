@@ -159,7 +159,7 @@ impl DynamicBitVector {
                     + self.apply_bitop_node(right_id as usize, f, g, index - self[node].nums, bit)
             } else {
                 // leaf
-                f(self, right_id, index, bit)
+                f(self, right_id, index - self[node].nums, bit)
             }
         } else {
             // enter left side

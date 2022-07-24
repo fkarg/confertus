@@ -5,7 +5,7 @@ impl Dot for Leaf {
     fn dotviz(&self, self_id: isize) -> String {
 
         format!(
-            "L{self_id} [label=\"L{self_id}\\n{:#0width$b}\\nnums={}\" shape=record];\n",
+            "L{self_id} [label=\"Leaf[{self_id}]\\n{:#0width$b}\\nnums={}\" shape=record];\n",
             self.value,
             self.nums,
             width = (LeafValue::BITS + 2) as usize

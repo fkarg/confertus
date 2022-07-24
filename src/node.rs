@@ -125,7 +125,7 @@ impl Dot for Node {
         );
 
         format!(
-            "N{self_id} [label=\"N{self_id}\\nnums={} ones={} rank={}\"];\n\
+            "N{self_id} [label=\"Node[{self_id}]\\nnums={} ones={} rank={}\"];\n\
             {}\
             {}\
             {}\

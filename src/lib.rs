@@ -34,7 +34,7 @@ mod primitive_static;
 // /// (incomplete)
 // pub mod avl_tree;
 
-mod diff;
+// mod diff;
 mod leaf;
 mod node;
 
