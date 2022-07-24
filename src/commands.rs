@@ -45,7 +45,7 @@ where
         .unwrap();
 
     // write!(file, "\n{}", val).map_err(|e| e.to_string())
-    match write!(file, "{}\n", val) {
+    match writeln!(file, "{}", val) {
         Ok(o) => Ok(o),
         Err(e) => Err("Errored appending to file"),
     }

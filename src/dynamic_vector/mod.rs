@@ -729,10 +729,10 @@ impl DynamicBitVector {
             // enter right side
             let right_id = self[node].right.unwrap();
             if right_id >= 0 {
-                return self.delete_node(right_id as usize, index - self[node].nums);
+                self.delete_node(right_id as usize, index - self[node].nums)
             } else {
                 // leaf
-                return self.delete_leaf(right_id, index - self[node].nums);
+                self.delete_leaf(right_id, index - self[node].nums)
             }
         } else {
             // enter left side
@@ -743,10 +743,10 @@ impl DynamicBitVector {
             // }
             // // TODO: welp, information to update nums and bits not really available here.
             if left_id >= 0 {
-                return self.delete_node(left_id as usize, index);
+                self.delete_node(left_id as usize, index)
             } else {
                 // leaf
-                return self.delete_leaf(left_id, index);
+                self.delete_leaf(left_id, index)
             }
         }
     }
@@ -1175,13 +1175,13 @@ impl DynamicBitVector {
             // node
             if let Some(r) = self[node].right {
                 let (n, o) = self.full_nums_ones(r);
-                return (n + self[node].nums, o + self[node].ones);
+                (n + self[node].nums, o + self[node].ones)
             } else {
-                return (self[node].nums, self[node].ones);
+                (self[node].nums, self[node].ones)
             }
         } else {
             // leaf
-            return (self[child].nums as usize, self[child].ones());
+            (self[child].nums as usize, self[child].ones())
         }
     }
 }
