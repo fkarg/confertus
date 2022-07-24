@@ -193,7 +193,17 @@ impl UnsafeBitVec for u64 {
     #[inline]
     #[cfg(target_arch = "x86_64")]
     unsafe fn rank_internal(&self, bit: bool, index: usize) -> usize {
-        _popcnt64({if bit { *self } else { !self }}.overflowing_shl(u64::BITS - index as u32).0 as i64) as usize
+        _popcnt64(
+            {
+                if bit {
+                    *self
+                } else {
+                    !self
+                }
+            }
+            .overflowing_shl(u64::BITS - index as u32)
+            .0 as i64,
+        ) as usize
     }
 
     /// Fallback implementation of `rank`, not depending on any specific architecture

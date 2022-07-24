@@ -216,7 +216,8 @@ fn insert_2() {
 fn insert_3() {
     let mut d = DynamicBitVector::new();
     for i in 0..(LeafValue::BITS * 2) {
-        d.insert(d[d.root].nums, true).expect("insert failed at {i}");
+        d.insert(d[d.root].nums, true)
+            .expect("insert failed at {i}");
     }
     let half = (LeafValue::BITS / 2) as usize;
     assert_eq!(
@@ -229,8 +230,16 @@ fn insert_3() {
             ],
             leafs: vec![
                 Leaf::new(0),
-                Leaf::create(0, LeafValue::MAX.overflowing_shr((half -1) as u32).0, (half +1) as u8),
-                Leaf::create(1, LeafValue::MAX.overflowing_shr((half -3) as u32).0, (half +3) as u8),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX.overflowing_shr((half - 1) as u32).0,
+                    (half + 1) as u8
+                ),
+                Leaf::create(
+                    1,
+                    LeafValue::MAX.overflowing_shr((half - 3) as u32).0,
+                    (half + 3) as u8
+                ),
                 Leaf::create(1, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
             ],
         }
@@ -243,7 +252,8 @@ fn insert_4() {
     let mut d = DynamicBitVector::new();
     let half = (LeafValue::BITS / 2) as usize;
     for i in 0..(LeafValue::BITS * 2 + half as u32) {
-        d.insert(d[d.root].nums, true).expect("insert failed at {i}");
+        d.insert(d[d.root].nums, true)
+            .expect("insert failed at {i}");
     }
     d.viz();
     assert_eq!(
@@ -256,8 +266,16 @@ fn insert_4() {
             ],
             leafs: vec![
                 Leaf::new(0),
-                Leaf::create(0, LeafValue::MAX.overflowing_shr((half -1) as u32).0, (half +1) as u8),
-                Leaf::create(1, LeafValue::MAX.overflowing_shr((half -3) as u32).0, (half +3) as u8),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX.overflowing_shr((half - 1) as u32).0,
+                    (half + 1) as u8
+                ),
+                Leaf::create(
+                    1,
+                    LeafValue::MAX.overflowing_shr((half - 3) as u32).0,
+                    (half + 3) as u8
+                ),
                 Leaf::create(1, LeafValue::MAX.overflowing_shr(half as u32).0, half as u8),
             ],
         }

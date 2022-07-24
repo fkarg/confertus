@@ -3,14 +3,12 @@ use crate::traits::*;
 
 impl Dot for Leaf {
     fn dotviz(&self, self_id: isize) -> String {
-
         format!(
             "L{self_id} [label=\"Leaf[{self_id}]\\n{:#0width$b}\\nnums={}\" shape=record];\n",
             self.value,
             self.nums,
-            width = (LeafValue::BITS + 2) as usize
-            //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
-            )
+            width = (LeafValue::BITS + 2) as usize //         L{self_id} -> N{} [label=<Parent>];\n", self.value, self.nums, self.parent)
+        )
     }
 }
 
@@ -18,10 +16,14 @@ impl Dot for Leaf {
 /// binary representation}]`
 impl fmt::Debug for Leaf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
+        write!(
+            f,
             "Leaf[P: <{:3}>, nums {:3}, value {:#0width$b}]",
-                self.parent, self.nums, self.value, width = (LeafValue::BITS + 2) as usize
-            )
+            self.parent,
+            self.nums,
+            self.value,
+            width = (LeafValue::BITS + 2) as usize
+        )
     }
 }
 
