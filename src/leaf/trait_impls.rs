@@ -1,4 +1,4 @@
-use super::*;
+use super::{Dot, DynBitTree, DynBitVec, Leaf, LeafValue, StaticBitVec, fmt};
 use crate::traits::*;
 
 impl Dot for Leaf {
@@ -62,13 +62,13 @@ impl StaticBitVec for Leaf {
 impl DynBitVec for Leaf {
     #[inline]
     fn insert(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
-        if (self.nums as u32) < LeafValue::BITS && index <= self.nums as usize {
+        if u32::from(self.nums) < LeafValue::BITS && index <= self.nums as usize {
             unsafe { self.insert_unchecked(index, bit) };
             Ok(())
         } else if index > self.nums as usize {
             println!("index {index} out of bounds for {}", self.nums);
             Err("Leaf.insert: Index out of bounds `index > self.nums`")
-        } else if (self.nums as u32) >= LeafValue::BITS {
+        } else if u32::from(self.nums) >= LeafValue::BITS {
             Err("Leaf.insert: No free capacity left")
         } else {
             unreachable!()

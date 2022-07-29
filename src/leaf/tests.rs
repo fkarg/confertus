@@ -163,7 +163,7 @@ fn insert_all_random_1() {
     let mut l = Leaf::create(0, 0, 0);
 
     for _ in 0..LeafValue::BITS {
-        let i = rng.gen_range(0..(l.nums + 1));
+        let i = rng.gen_range(0..=l.nums);
         let bit = rng.gen_bool(0.5);
         l.insert(i as usize, bit).unwrap();
     }

@@ -1,4 +1,4 @@
-use crate::traits::*;
+use crate::traits::{Dot, DynBitTree, DynBitVec, StaticBitVec};
 use crate::{BitSize, DynamicBitVector, Leaf, LeafValue, Node};
 use std::fmt;
 use std::ops::{Add, Index, IndexMut};

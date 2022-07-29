@@ -1,14 +1,14 @@
 use super::traits::StaticBitVec;
 use core::arch::x86_64::{_pdep_u64, _popcnt64, _tzcnt_u64};
 
-/// So, that one didn't work out as LeafValue, as it still needs to implement bitshifts for various
+/// So, that one didn't work out as `LeafValue`, as it still needs to implement bitshifts for various
 /// functionality.
 impl StaticBitVec for bool {
-    type Intern = bool;
+    type Intern = Self;
 
     #[inline]
     fn ones(&self) -> usize {
-        *self as usize
+        usize::from(*self)
     }
 
     #[inline]
@@ -39,26 +39,26 @@ impl StaticBitVec for bool {
 }
 
 impl StaticBitVec for u8 {
-    type Intern = u8;
+    type Intern = Self;
 
     #[inline]
     fn ones(&self) -> usize {
-        (*self as u64).ones()
+        u64::from(*self).ones()
     }
 
     #[inline]
     fn access(&self, index: usize) -> bool {
-        (*self as u64).access(index)
+        u64::from(*self).access(index)
     }
 
     #[inline]
     fn rank(&self, bit: bool, index: usize) -> usize {
-        (*self as u64).rank(bit, index)
+        u64::from(*self).rank(bit, index)
     }
 
     #[inline]
     fn select(&self, bit: bool, n: usize) -> usize {
-        (*self as u64).select(bit, n)
+        u64::from(*self).select(bit, n)
     }
 
     #[inline]
@@ -68,26 +68,26 @@ impl StaticBitVec for u8 {
 }
 
 impl StaticBitVec for u16 {
-    type Intern = u16;
+    type Intern = Self;
 
     #[inline]
     fn ones(&self) -> usize {
-        (*self as u64).ones()
+        u64::from(*self).ones()
     }
 
     #[inline]
     fn access(&self, index: usize) -> bool {
-        (*self as u64).access(index)
+        u64::from(*self).access(index)
     }
 
     #[inline]
     fn rank(&self, bit: bool, index: usize) -> usize {
-        (*self as u64).rank(bit, index)
+        u64::from(*self).rank(bit, index)
     }
 
     #[inline]
     fn select(&self, bit: bool, n: usize) -> usize {
-        (*self as u64).select(bit, n)
+        u64::from(*self).select(bit, n)
     }
 
     #[inline]
@@ -97,26 +97,26 @@ impl StaticBitVec for u16 {
 }
 
 impl StaticBitVec for u32 {
-    type Intern = u32;
+    type Intern = Self;
 
     #[inline]
     fn ones(&self) -> usize {
-        (*self as u64).ones()
+        u64::from(*self).ones()
     }
 
     #[inline]
     fn access(&self, index: usize) -> bool {
-        (*self as u64).access(index)
+        u64::from(*self).access(index)
     }
 
     #[inline]
     fn rank(&self, bit: bool, index: usize) -> usize {
-        (*self as u64).rank(bit, index)
+        u64::from(*self).rank(bit, index)
     }
 
     #[inline]
     fn select(&self, bit: bool, n: usize) -> usize {
-        (*self as u64).select(bit, n)
+        u64::from(*self).select(bit, n)
     }
 
     #[inline]
@@ -143,7 +143,7 @@ impl UnsafeBitVec for u64 {
     unsafe fn select_internal(&self, bit: bool, n: usize) -> usize {
         let mut cnt = n;
         // go over u64 from right to left
-        for shift in 0..u64::BITS {
+        for shift in 0..Self::BITS {
             if (((self >> shift) & 1) != 0) == bit {
                 // we're looking for `n`-th match, so check for zero first
                 // (insdead of: decrease first)
@@ -201,7 +201,7 @@ impl UnsafeBitVec for u64 {
                     !self
                 }
             }
-            .overflowing_shl(u64::BITS - index as u32)
+            .overflowing_shl(Self::BITS - index as u32)
             .0 as i64,
         ) as usize
     }
@@ -225,7 +225,7 @@ impl UnsafeBitVec for u64 {
 
 /// Container is [`u64`] Bit Vector, indexed from right to left (big endian).
 impl StaticBitVec for u64 {
-    type Intern = u64;
+    type Intern = Self;
 
     // TODO: use _popcnt64 für `x86_64` (just for i64?)
     #[inline]
@@ -267,7 +267,7 @@ impl UnsafeBitVec for u128 {
     unsafe fn select_internal(&self, bit: bool, n: usize) -> usize {
         let mut cnt = n;
         // go over u128 from right to left
-        for shift in 0..u128::BITS {
+        for shift in 0..Self::BITS {
             if (((self >> shift) & 1) != 0) == bit {
                 // we're looking for `n`-th match, so check for zero first
                 // (insdead of: decrease first)
@@ -324,14 +324,14 @@ impl UnsafeBitVec for u128 {
             // full right half first
             _popcnt64(array as i64) as usize +
             // plus left half until index, and then move right
-            _popcnt64(array.overflowing_shl(u128::BITS - index as u32).0.overflowing_shr(64).0 as i64) as usize
+            _popcnt64(array.overflowing_shl(Self::BITS - index as u32).0.overflowing_shr(64).0 as i64) as usize
         }
     }
 }
 
 /// Container is [`u128`] Bit Vector, indexed from right to left (big endian).
 impl StaticBitVec for u128 {
-    type Intern = u128;
+    type Intern = Self;
 
     #[inline]
     fn ones(&self) -> usize {
@@ -410,7 +410,7 @@ mod tests {
     fn ones_u64(n: u64) -> TestResult {
         if n == 0 {
             TestResult::from_bool(0u64.ones() == n as usize)
-        } else if n > u64::BITS as u64 {
+        } else if n > u64::from(u64::BITS) {
             TestResult::discard()
         } else {
             TestResult::from_bool((2 ^ (n - 1)).ones() == n as usize)
@@ -440,7 +440,7 @@ mod tests {
     #[quickcheck]
     fn rank_u64(n: usize) -> TestResult {
         if n >= u64::BITS as usize {
-            return TestResult::discard();
+            TestResult::discard()
         } else {
             // assert_eq!(u64::MAX.rank(true, 0), 0);
             // assert_eq!(u64::MAX.rank(true, 1), 1);
@@ -469,7 +469,7 @@ mod tests {
     fn ones_u128(n: u128) -> TestResult {
         if n == 0 {
             TestResult::from_bool(0u128.ones() == n as usize)
-        } else if n > u128::BITS as u128 {
+        } else if n > u128::from(u128::BITS) {
             TestResult::discard()
         } else {
             TestResult::from_bool((2 ^ (n - 1)).ones() == n as usize)
@@ -499,7 +499,7 @@ mod tests {
     #[quickcheck]
     fn rank_u128(n: usize) -> TestResult {
         if n >= u128::BITS as usize {
-            return TestResult::discard();
+            TestResult::discard()
         } else {
             // assert_eq!(u64::MAX.rank(true, 0), 0);
             // assert_eq!(u64::MAX.rank(true, 1), 1);

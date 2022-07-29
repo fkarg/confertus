@@ -33,8 +33,9 @@ impl DynamicBitVector {
     // CONSTRUCTOR
 
     /// Constructs new `DynamicBitVector` with empty root [`Node`].
+    #[must_use]
     pub fn new() -> Self {
-        DynamicBitVector {
+        Self {
             root: 0,
             nodes: vec![Node::new()], // create root node, but no children yet
             leafs: vec![Leaf::new(0)],
@@ -83,7 +84,7 @@ impl DynamicBitVector {
     #[inline]
     pub fn apply<T>(
         &mut self,
-        mut f: impl FnMut(&mut DynamicBitVector, isize, usize) -> T,
+        mut f: impl FnMut(&mut Self, isize, usize) -> T,
         index: usize,
     ) -> T {
         self.apply_node(self.root, f, index)
@@ -92,7 +93,7 @@ impl DynamicBitVector {
     fn apply_node<T>(
         &mut self,
         node: usize,
-        mut f: impl FnMut(&mut DynamicBitVector, isize, usize) -> T,
+        mut f: impl FnMut(&mut Self, isize, usize) -> T,
         index: usize,
     ) -> T {
         // index 128 is at right side when `nums == 128`, include right side/equal sign
@@ -128,8 +129,8 @@ impl DynamicBitVector {
     #[inline]
     pub fn apply_bitop<T>(
         &self,
-        mut f: impl FnMut(&DynamicBitVector, isize, usize, bool) -> T,
-        g: impl Fn(&DynamicBitVector, usize, bool) -> T,
+        mut f: impl FnMut(&Self, isize, usize, bool) -> T,
+        g: impl Fn(&Self, usize, bool) -> T,
         index: usize,
         bit: bool,
     ) -> T
@@ -142,8 +143,8 @@ impl DynamicBitVector {
     fn apply_bitop_node<T>(
         &self,
         node: usize,
-        mut f: impl FnMut(&DynamicBitVector, isize, usize, bool) -> T,
-        g: impl Fn(&DynamicBitVector, usize, bool) -> T,
+        mut f: impl FnMut(&Self, isize, usize, bool) -> T,
+        g: impl Fn(&Self, usize, bool) -> T,
         index: usize,
         bit: bool,
     ) -> T
@@ -634,7 +635,7 @@ impl DynamicBitVector {
     /// Handle inserting `bit` at position `index` in given `leaf`
     fn insert_leaf(&mut self, leaf: isize, index: usize, bit: bool) -> Result<(), &'static str> {
         // check for leaf full, split, traverse, rebalance, insert if true.
-        if self[leaf].nums as u32 >= LeafValue::BITS && self[self[leaf].parent].left.is_none() {
+        if u32::from(self[leaf].nums) >= LeafValue::BITS && self[self[leaf].parent].left.is_none() {
             self.move_right_child_left(self[leaf].parent);
 
             let values = self[leaf].split_to_right();
@@ -644,7 +645,7 @@ impl DynamicBitVector {
             self.update_left_values_only(self[leaf].parent, leaf);
 
             self.insert_node(self[leaf].parent, index, bit)?;
-        } else if self[leaf].nums as u32 >= LeafValue::BITS {
+        } else if u32::from(self[leaf].nums) >= LeafValue::BITS {
             let node = self.split_leaf(leaf);
             // try insertion at the newly created node
             self.insert_node(node, index, bit)?;
@@ -719,7 +720,7 @@ impl DynamicBitVector {
     fn delete_leaf(&mut self, leaf: isize, index: usize) -> Result<isize, &'static str> {
         self[leaf].delete(index)?;
         // check for leaf empty, merge, traverse, rebalance if true
-        if self[leaf].nums as u32 <= LeafValue::BITS / 4 {
+        if u32::from(self[leaf].nums) <= LeafValue::BITS / 4 {
             self.merge_away(leaf);
         }
         Ok(leaf)
@@ -758,6 +759,7 @@ impl DynamicBitVector {
 
     /// Return closest immediately sequential neighbor to given [`Leaf`] `leaf`, should it exist.
     /// `Either` additionally tells if it was a right or left child.
+    #[must_use]
     pub fn closest_neighbor_leaf(&self, leaf: isize) -> Option<Side<isize>> {
         // first, check other child of immediate parent
         let parent = self[leaf].parent;
@@ -781,6 +783,7 @@ impl DynamicBitVector {
     /// Try to return a Leaf that is the closest neighbor (left or right) to the given Node
     /// `child` by ascending, and descending the respectively 'other' side of `child`. Fails if no
     /// such neighbor exists.
+    #[must_use]
     pub fn closest_neighbor_child(&self, child: usize) -> Option<Side<isize>> {
         if let Some(p) = self[child].parent {
             if let Some(l) = self[p].left {
@@ -854,7 +857,7 @@ impl DynamicBitVector {
         if let Some(neighbor) = self.closest_neighbor_leaf(leaf) {
             let n = neighbor.either_into::<isize>();
             // neighbor is leaf. check if we can merge into
-            if (self[n].nums as u32) <= { 3 * LeafValue::BITS / 4 } {
+            if u32::from(self[n].nums) <= { 3 * LeafValue::BITS / 4 } {
                 // neighbor has enough room to spare, merge
                 let parent = self[leaf].parent;
                 self.merge_leafs(leaf, neighbor);
@@ -1015,6 +1018,7 @@ impl DynamicBitVector {
 
     /// Given some Child `child`, return side on parent and parent index
     #[inline]
+    #[must_use]
     pub fn get_side(&self, child: isize) -> Option<Side<usize>> {
         if child >= 0 {
             self.get_node_side(child as usize)
@@ -1024,6 +1028,7 @@ impl DynamicBitVector {
     }
 
     /// Given Leaf `child`, return side on parent and parent index
+    #[must_use]
     pub fn get_leaf_side(&self, child: isize) -> Side<usize> {
         let parent = self[child].parent;
         if let Some(l) = self[parent].left {
@@ -1040,6 +1045,7 @@ impl DynamicBitVector {
     }
 
     /// Given Node `child`, return side on parent and parent index
+    #[must_use]
     pub fn get_node_side(&self, child: usize) -> Option<Side<usize>> {
         if let Some(parent) = self[child as usize].parent {
             if let Some(l) = self[parent].left {
@@ -1172,6 +1178,7 @@ impl DynamicBitVector {
     ///                            └───┘
     /// ```
     #[inline]
+    #[must_use]
     pub fn full_nums_ones(&self, child: isize) -> (usize, usize) {
         if child >= 0 {
             let node = child as usize;

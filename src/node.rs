@@ -45,8 +45,9 @@ impl fmt::Debug for Node {
 /// implemented in [`crate::DynamicBitVector`] directly.
 impl Node {
     /// Constructs new, empty `Node`.
+    #[must_use]
     pub fn new() -> Self {
-        Node {
+        Self {
             parent: None,
             left: None,
             right: None,
@@ -57,6 +58,7 @@ impl Node {
     }
 
     /// Constructs new `Node` with given values
+    #[must_use]
     pub fn create(
         parent: Option<usize>,
         left: Option<isize>,
@@ -65,7 +67,7 @@ impl Node {
         ones: usize,
         rank: i8,
     ) -> Self {
-        Node {
+        Self {
             parent,
             left,
             right,

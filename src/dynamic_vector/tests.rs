@@ -153,7 +153,7 @@ fn push_6_2() {
 #[test]
 fn insert_1() {
     let mut d = DynamicBitVector::new();
-    for i in 0..(LeafValue::BITS * 1 + 1) {
+    for i in 0..=(LeafValue::BITS * 1) {
         d.insert(0, true).expect("insert failed at {i}");
     }
     let half = (LeafValue::BITS / 2) as u32;

@@ -1,4 +1,4 @@
-use crate::traits::*;
+use crate::traits::{Dot, DynBitTree, DynBitVec, StaticBitVec};
 use either::{Left, Right};
 use std::fmt;
 
@@ -34,8 +34,9 @@ impl Leaf {
 
     /// Constructs a new, empty `Leaf` with parent `parent`.
     #[inline]
+    #[must_use]
     pub fn new(parent: usize) -> Self {
-        Leaf {
+        Self {
             parent,
             value: 0,
             nums: 0,
@@ -44,8 +45,9 @@ impl Leaf {
 
     /// Cunstructs a new `Leaf` with parent `parent`, container [`LeafValue`] and size `nums`.
     #[inline]
+    #[must_use]
     pub fn create(parent: usize, value: LeafValue, nums: u8) -> Self {
-        Leaf {
+        Self {
             parent,
             value,
             nums,
@@ -76,7 +78,7 @@ impl Leaf {
     /// - `self.nums < LeafValue::BITS`
     #[inline]
     pub unsafe fn push_unchecked(&mut self, bit: bool) {
-        self.value |= (bit as LeafValue) << self.nums;
+        self.value |= LeafValue::from(bit) << self.nums;
         self.nums += 1;
     }
 
@@ -98,7 +100,7 @@ impl Leaf {
         let lmask = LeafValue::MAX.overflowing_shl(index as u32).0; // in- or excluding index here?
         let rmask = !lmask; // right side mask is just left shift mask with bits flipped
         self.value =
-            ((self.value & lmask) << 1) | ((bit as LeafValue) << index) | (self.value & rmask);
+            ((self.value & lmask) << 1) | (LeafValue::from(bit) << index) | (self.value & rmask);
         self.nums += 1;
     }
 
@@ -161,23 +163,23 @@ impl Leaf {
     #[inline]
     pub fn extend(&mut self, values: Side<LeafValue>, nums: u8) {
         match values {
-            Right(v) => self.extend_from(&Leaf::create(0, v, nums)),
-            Left(v) => self.prepend(&Leaf::create(0, v, nums)),
+            Right(v) => self.extend_from(&Self::create(0, v, nums)),
+            Left(v) => self.prepend(&Self::create(0, v, nums)),
         }
     }
 
-    /// Extend LeafValue container with values from other Leaf with originally higher index.
+    /// Extend `LeafValue` container with values from other Leaf with originally higher index.
     /// Appends new values to end.
     #[inline]
-    pub fn extend_from(&mut self, leaf: &Leaf) {
+    pub fn extend_from(&mut self, leaf: &Self) {
         self.value |= leaf.values() << leaf.nums();
         self.nums += leaf.nums() as u8;
     }
 
-    /// Prepend other values to existing values in LeafValue container. Current values are moved
+    /// Prepend other values to existing values in `LeafValue` container. Current values are moved
     /// later.
     #[inline]
-    pub fn prepend(&mut self, leaf: &Leaf) {
+    pub fn prepend(&mut self, leaf: &Self) {
         self.value <<= leaf.nums();
         self.value |= leaf.values();
         self.nums += leaf.nums() as u8;
