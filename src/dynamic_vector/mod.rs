@@ -403,9 +403,17 @@ impl DynamicBitVector {
 
     /// Left rotation of [`Node`]s `x` and `z`.
     ///
-    /// Assumes that `z` is right child of `x`, `x.rank == 2` and `z.rank == 1|0`
+    /// Assumes that `z` is right child of `x`, `x.rank == 2` and `z.rank == -1|1|0`
     /// (0 can only happens after deletion, and correct ranks might not be zero in all situations
-    /// after rotation).
+    /// after rotation). This is done via the following steps (in order):
+    /// 1. Update parent of Z to parent of X
+    /// 2. Update child of parent of X to Z
+    /// 3. Update parent of X to Z
+    /// 4. Update right child of X to left chiled of Z: T23
+    /// 5. Update parent of T23
+    /// 6. Update left child of Z to X
+    /// 7. Update ranks of X and Z to 0
+    /// 8. Update `nums` and `zeros` of Z
     /// ```text
     ///         │parent                                          │parent
     ///         │                                                │
@@ -427,7 +435,54 @@ impl DynamicBitVector {
     /// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).
     pub fn rotate_left(&mut self, z: usize, x: usize) {
         #[cfg(debug_assertions)]
-        println!("left-rotate N{x} (x) and N{z} (z, lower)");
+        println!("left-rotate N{x} (x) and N{z} (z, lower and right child)");
+        debug_assert!(self[x].rank == 2);
+        debug_assert!(self[z].rank == 1);
+        self.rotate_left_new(z, x);
+    }
+
+    #[inline]
+    fn rotate_left_new(&mut self, z: usize, x: usize) {
+        // new implementation of rotate_left, not yet supporting more complex rotations
+        // 1
+        self[z].parent = self[x].parent;
+        // 2
+        if let Some(p) = self[z].parent {
+            self[p].replace_child_with(x as isize, z as isize);
+        } else {
+            self.root = z;
+        }
+        // 3
+        self[x].parent = Some(z);
+        // 4
+        self[x].right = self[z].left;
+
+        // 5
+        let r = self[x].right.unwrap();
+        if r >= 0 {
+            // node
+            self[r as usize].parent = Some(x);
+        } else {
+            // leaf
+            self[r].parent = x;
+        }
+
+        // 6
+        self[z].left = Some(x as isize);
+
+
+        // 7
+        self[z].rank = 0;
+        self[x].rank = 0;
+
+        // 8
+        // let (n, o) = self.full_nums_ones(x as isize);
+        self[z].nums += self[x].nums;
+        self[z].ones += self[x].ones;
+    }
+
+    #[inline]
+    fn rotate_left_old(&mut self, z: usize, x: usize) {
         let mut trace = false;
         let grand_parent = self[x].parent;
         // update parents
@@ -481,32 +536,79 @@ impl DynamicBitVector {
 
     /// Right rotation of [`Node`]s `z` and `x` to reestablish rank-difference invariant.
     ///
-    /// Assumes that `z` is left child of `x`, `x.rank == 2` and `z.rank == 1|0`
+    /// Assumes that `z` is left child of `x`, `x.rank == -2` and `z.rank == -1|1|0`
     /// (0 can only happens after deletion, and correct ranks might not be zero in all situations
     /// after rotation). We won't need to recursively update `nums` and `ones, as they won't
     /// change from the perspective of `parent`.
     /// ```text
     ///               │parent                               │parent
     ///               │                                     │
-    ///             ┌─▼─┐                                 ┌─▼─┐
-    ///         left│ X │right                        left│ Z │right
-    ///         ┌───┤   ├───┐                         ┌───┤   ├───┐
-    ///         │   │r:2│   │                         │   │r:0│   │
-    ///       ┌─▼─┐ └───┘ ┌─▼─┐   right rotation    ┌─▼─┐ └───┘ ┌─▼─┐
-    ///   left│ Z │right  │   │                     │   │   left│ X │right
-    ///   ┌───┤   ├───┐   │T4 │    ───────────►     │T1 │   ┌───┤   ├───┐
-    ///   │   │r:1│   │   │   │                     │   │   │   │r:0│   │
-    /// ┌─▼─┐ └───┘ ┌─▼─┐ └───┘                     └───┘ ┌─▼─┐ └───┘ ┌─▼─┐
-    /// │   │       │   │                                 │   │       │   │
-    /// │T1 │       │T23│                                 │T23│       │T4 │
-    /// │   │       │   │                                 │   │       │   │
-    /// └───┘       └───┘                                 └───┘       └───┘
+    ///             ┌─▼──┐                                 ┌─▼─┐
+    ///         left│ X  │right                        left│ Z │right
+    ///         ┌───┤    ├───┐                         ┌───┤   ├───┐
+    ///         │   │r:-2│   │                         │   │r:0│   │
+    ///       ┌─▼──┐└────┘ ┌─▼─┐   right rotation    ┌─▼─┐ └───┘ ┌─▼─┐
+    ///   left│ Z  │right  │   │                     │   │   left│ X │right
+    ///   ┌───┤    ├───┐   │T4 │    ───────────►     │T1 │   ┌───┤   ├───┐
+    ///   │   │r:-1│   │   │   │                     │   │   │   │r:0│   │
+    /// ┌─▼─┐ └────┘ ┌─▼─┐ └───┘                     └───┘ ┌─▼─┐ └───┘ ┌─▼─┐
+    /// │   │        │   │                                 │   │       │   │
+    /// │T1 │        │T23│                                 │T23│       │T4 │
+    /// │   │        │   │                                 │   │       │   │
+    /// └───┘        └───┘                                 └───┘       └───┘
     /// ```
     /// See also the [wikipedia article on AVL-tree
     /// rebalancing](https://en.wikipedia.org/wiki/AVL_tree#Rebalancing).
     pub fn rotate_right(&mut self, z: usize, x: usize) {
         #[cfg(debug_assertions)]
-        println!("right-rotate N{x} (x) and N{z} (z, lower) ");
+        println!("right-rotate N{x} (x) and N{z} (z, lower and left child)");
+        debug_assert!(self[x].rank == -2);
+        debug_assert!(self[z].rank == -1);
+        self.rotate_right_new(z, x);
+    }
+
+    #[inline]
+    fn rotate_right_new(&mut self, z: usize, x: usize) {
+        // new implementation of rotate_right, not yet fully featured
+        // 1
+        self[z].parent = self[x].parent;
+        // 2
+        if let Some(p) = self[z].parent {
+            self[p].replace_child_with(x as isize, z as isize);
+        } else {
+            self.root = z;
+        }
+        // 3
+        self[x].parent = Some(z);
+        // 4
+        self[x].left = self[z].right;
+
+        // 5
+        let r = self[x].left.unwrap();
+        if r >= 0 {
+            // node
+            self[r as usize].parent = Some(x);
+        } else {
+            // leaf
+            self[r].parent = x;
+        }
+
+        // 6
+        self[z].right = Some(x as isize);
+
+
+        // 7
+        self[z].rank = 0;
+        self[x].rank = 0;
+
+        // 8
+        // let (n, o) = self.full_nums_ones(x as isize);
+        self[x].nums -= self[z].nums;
+        self[x].ones -= self[z].ones;
+    }
+
+    #[inline]
+    fn rotate_right_old(&mut self, z: usize, x: usize) {
         // if we need to trace back changes in rank later, which we only might in case of deletion
         // (as it might cascade for up to `log n` rotations).
         let mut trace = false;
@@ -542,6 +644,9 @@ impl DynamicBitVector {
             let (n, o) = self.full_nums_ones(l);
             self[x].nums = n;
             self[x].ones = o;
+        } else {
+            self[x].nums = 0;
+            self[x].ones = 0;
         }
 
         // update parent pointer of T23, which might actually not exist (happened before)
@@ -572,15 +677,16 @@ impl DynamicBitVector {
     /// yet implemented)
     ///
     /// - `parent` is [`Node`] with temporary rank / balance factor violation
-    /// - `node` is higher child of `parent`
+    /// - `node` is child of `parent` with higher inbalance
     pub fn rebalance(&mut self, node: usize, parent: usize) {
         #[cfg(debug_assertions)]
         println!(
-            "rebalance ranks: parent.r {} node.r {}",
+            ".rebalance: rank of parent[{parent}]: {}, node[{node}]: {}",
             self[parent].rank, self[node].rank
         );
         #[cfg(debug_assertions)]
         println!("rebalance node ids: parent {} node {}", parent, node);
+        self.viz();
         // invariance has been broken at `parent`, while `node` is the 'higher' child. (unclear
         // which side)
         // match self.get_node_side // TODO: update
@@ -596,6 +702,7 @@ impl DynamicBitVector {
                     println!(" Right Left violation");
                     let y = self[node].left.unwrap() as usize;
                     self.rotate_right(y, node);
+                    self.viz();
                     self.rotate_left(y, parent);
                 }
             }
@@ -612,6 +719,7 @@ impl DynamicBitVector {
                     println!(" Left Right violation");
                     let y = self[node].right.unwrap() as usize;
                     self.rotate_left(y, node);
+                    self.viz();
                     self.rotate_right(y, parent);
                 }
             }
