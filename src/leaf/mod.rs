@@ -18,7 +18,7 @@ pub const HALF: u32 = LeafValue::BITS / 2;
 /// reference to its parent [`crate::Node`].
 ///
 /// Instance bit size: 17~25 bytes, depending on `LeafValue`
-#[derive(PartialEq, Clone, Default)]
+#[derive(PartialEq, Clone, Default, Hash)]
 pub struct Leaf {
     /// reference to parent [`crate::Node`] (8 byte)
     pub parent: usize, // 8 bytes
@@ -153,7 +153,7 @@ impl Leaf {
 
     // MERGE / EXTEND
 
-    /// Extend LeafValue container with given values on given side by `num`.
+    /// Extend `LeafValue` container with given values on given side by `num`.
     ///
     /// `Left` side means that values are originally of lower index than current leaf, thus
     /// inserting them to the beginning.

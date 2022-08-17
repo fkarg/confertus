@@ -7,6 +7,9 @@ use either::{Left, Right};
 use std::fmt;
 use std::io::Write;
 use std::ops::{Add, Index, IndexMut};
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
 
 type Side<T> = either::Either<T, T>;
 
@@ -15,7 +18,7 @@ type Side<T> = either::Either<T, T>;
 ///
 /// Instance bit size: 56 bytes = 448
 /// (not included: bit sizes of instances in Vector structures)
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone, Default, Hash)]
 pub struct DynamicBitVector {
     /// index to root [`Node`], 8 bytes
     pub root: usize, // 8 bytes
@@ -258,6 +261,8 @@ impl DynamicBitVector {
     pub fn push(&mut self, bit: bool) {
         // let root = self.root;
         self.push_node(self.root, bit);
+        #[cfg(debug_assertions)]
+        self.validate(&format!(".push of '{bit}'")).unwrap();
     }
 
     /// Append `bit` to the rightmost position in the rightmost [`Leaf`], descending from `node`.
@@ -1080,8 +1085,13 @@ impl DynamicBitVector {
     #[inline]
     #[cfg(debug_assertions)]
     fn viz(&self) {
-        commands::write_file("tmp.txt", &self.dotviz(0)).unwrap();
-        println!("wrote current tree state to 'tmp.txt'");
+        let mut hasher = DefaultHasher::new();
+        self.hash(&mut hasher);
+        let h = hasher.finish(); // {h:x}
+        let fname = format!("/tmp/tmp_{h:x}");
+
+        commands::write_file(&fname, &self.dotviz(0)).unwrap();
+        println!("wrote current tree state to '{fname}'");
     }
 
     #[cfg(not(debug_assertions))]
@@ -1193,6 +1203,50 @@ impl DynamicBitVector {
             // leaf
             (self[child].nums as usize, self[child].ones())
         }
+    }
+
+    // VALIDATION
+
+    /// Validate correctness off all values `nums` and `ones` throughout the tree.
+    /// Returns both `nums` and `ones` as tuple or failure node otherwise.
+    ///
+    /// `add` is additional 'source'-string, as traceback where the failed validation happened.
+    #[inline]
+    fn validate(&self, add: &str) -> Result<(usize, usize), &str> {
+        self.viz();
+        self.validate_node(self.root, add)
+    }
+
+    fn validate_node(&self, node: usize, add: &str) -> Result<(usize, usize), &str> {
+        let (mut n, mut o) = (0, 0);
+        if let Some(l) = self[node].left {
+            if l >= 0 {
+                let (nl, ol) = self.validate_node(l as usize, add)?;
+                n += nl;
+                o += ol;
+            } else {
+                // leaf
+                n += self[l].nums();
+                o += self[l].ones();
+            }
+        }
+        // validate correctness
+        assert_eq!(self[node].nums, n, "`nums` is wrong in Node[{node}]: {} != {n}\n{add}", self[node].nums);
+        assert_eq!(self[node].ones, o, "`ones` is wrong in Node[{node}]: {} != {o}\n{add}", self[node].ones);
+
+        // check right side, add to return value
+        if let Some(r) = self[node].right {
+            if r >= 0 {
+                let (nr, or) = self.validate_node(r as usize, add)?;
+                n += nr;
+                o += or;
+            } else {
+                // leaf
+                n += self[r].nums();
+                o += self[r].ones();
+            }
+        }
+        Ok((n, o))
     }
 }
 

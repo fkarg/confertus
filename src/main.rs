@@ -27,7 +27,7 @@ use std::time::{Duration, Instant};
 /// - [x] Static Bit Vector
 /// - [x] Some kind of self-balancing binary tree (AVL / Red-Black / ...)
 /// - [ ] Balanced Parenthesis
-/// - [ ] Extending LeafValue container
+/// - [ ] Extending `LeafValue` container
 /// - [ ] BP with Range-Min-Max-Tree
 fn main() -> Result<(), &'static str> {
     #[cfg(debug_assertions)]
@@ -69,6 +69,7 @@ fn main() -> Result<(), &'static str> {
         println!("Problem parsing arguments: {}", err);
         process::exit(1);
     });
+    commands::write_file(&config.file_out, "").unwrap();
 
     // let contents = fs::read_to_string(config.file_in.clone())
     //     .expect(&format!("Something went wrong reading the file '{}'", config.file_in));

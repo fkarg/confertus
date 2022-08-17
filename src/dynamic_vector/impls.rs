@@ -126,6 +126,7 @@ impl StaticBitVec for DynamicBitVector {
     /// Return full internal container
     #[inline]
     fn values(&self) -> Self::Intern {
+        // build iterator that descends level by level first
         todo!()
     }
 }
@@ -141,7 +142,10 @@ impl DynBitVec for DynamicBitVector {
                 self.viz_stop();
                 Err(e)
             }
-            Ok(()) => Ok(()),
+            Ok(()) => {
+                self.validate(&format!(".insert of '{bit}' at {index}")).unwrap();
+                Ok(())
+            }
         }
     }
 
@@ -165,6 +169,7 @@ impl DynBitVec for DynamicBitVector {
             Ok(l) => Ok(l),
         }?;
         self.update_left_values(self[leaf].parent, leaf);
+        self.validate(&format!(".delete of {index} failed validation")).unwrap();
         Ok(())
     }
 
@@ -180,6 +185,8 @@ impl DynBitVec for DynamicBitVector {
     fn flip(&mut self, index: usize) {
         let leaf = self.apply(Self::flip_leaf, index);
         self.update_left_values(self[leaf].parent, leaf);
+        #[cfg(debug_assertions)]
+        self.validate(&format!(".flip of {index} failed validation")).unwrap();
     }
 
     #[inline]

@@ -9,7 +9,7 @@ use std::fmt;
 /// Instance bit size: 40 bytes + 5 bit = 325 bit
 ///
 /// Should `u32`/`i32` (4'294'967'295/2'147'483'647 values) suffice, size would be 20 bytes + 5 bit = 165 bit
-#[derive(PartialEq, Clone, Default)]
+#[derive(PartialEq, Clone, Default, Hash)]
 pub struct Node {
     // TODO: remove option from values to reduce used bit sizes
     /// index of parent Node, 8 bytes + 1bit
