@@ -77,8 +77,8 @@ These are dependencies required to execute tests, not for running the binary its
 - `rand`: access to a random number generator for tests. It has been
   suggested for integration in `std`, but that hasn't happened yet.
 
-I recommend running `cargo watch` on a terminal nearby during active
-development. It runs `cargo check` on filechange.
+I recommend running `cargo watch` or [`bacon`] on a terminal nearby during
+active development. Both run `cargo check` on filechange.
 
 ## Remarks on usage
 This project is an inefficient, incomplete and unsound implementation of a
@@ -94,3 +94,4 @@ established implementations such as [`bitvec`](https://docs.rs/bitvec) and
 [bv]: https://www.fkarg.me/confertus/docs/confertus/dynamic_vector/struct.DynamicBitVector.html
 [either]: https://docs.rs/either/latest/either/index.html
 [lecture]: https://algo2.iti.kit.edu/4264.php
+[bacon]: https://crates.io/crates/bacon
