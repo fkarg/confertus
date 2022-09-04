@@ -143,7 +143,8 @@ impl DynBitVec for DynamicBitVector {
                 Err(e)
             }
             Ok(()) => {
-                self.validate(&format!(".insert of '{bit}' at {index}")).unwrap();
+                self.validate(&format!(".insert of '{bit}' at {index}"))
+                    .unwrap();
                 Ok(())
             }
         }
@@ -169,7 +170,8 @@ impl DynBitVec for DynamicBitVector {
             Ok(l) => Ok(l),
         }?;
         self.update_left_values(self[leaf].parent, leaf);
-        self.validate(&format!(".delete of {index} failed validation")).unwrap();
+        self.validate(&format!(".delete of {index} failed validation"))
+            .unwrap();
         Ok(())
     }
 
@@ -186,7 +188,8 @@ impl DynBitVec for DynamicBitVector {
         let leaf = self.apply(Self::flip_leaf, index);
         self.update_left_values(self[leaf].parent, leaf);
         #[cfg(debug_assertions)]
-        self.validate(&format!(".flip of {index} failed validation")).unwrap();
+        self.validate(&format!(".flip of {index} failed validation"))
+            .unwrap();
     }
 
     #[inline]

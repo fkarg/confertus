@@ -168,7 +168,7 @@ where
     B: BitSize,
 {
     println!(
-        "RESULT algo={algo} name<Felix Karg> time=<{:?}>[ms] space=<{}>[bits]",
+        "RESULT algo={algo} name=<Felix Karg> time={:?}[ms] space={}[bits]",
         time.as_millis(),
         space.bitsize_full()
     );

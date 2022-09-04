@@ -4,6 +4,8 @@ use quickcheck::TestResult;
 use quickcheck_macros::quickcheck;
 use rand::Rng;
 
+// CREATION
+
 #[test]
 fn creation() {
     let dbv = DynamicBitVector::new();
@@ -17,7 +19,32 @@ fn creation() {
     );
 }
 
+#[test]
+fn with_capacity() {
+    let dbv = DynamicBitVector::with_capacity(LeafValue::BITS * 4);
+    assert_eq!(
+        dbv,
+        DynamicBitVector {
+            root: 2,
+            nodes: vec![
+                Node::create(Some(2), Some(-1), Some(-2), 0, 0, 0),
+                Node::create(Some(2), Some(-3), Some(-4), 0, 0, 0),
+                Node::create(None, Some(0), Some(1), 0, 0, 0),
+            ],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::new(0),
+                Leaf::new(0),
+                Leaf::new(1),
+                Leaf::new(1),
+            ],
+        }
+    );
+}
+
 // Tests for StaticBitVec behaviour. test with a few simple trees.
+
+// PUSH
 
 #[test]
 fn push_6_true() {
@@ -95,30 +122,9 @@ fn push_6_false() {
         DynamicBitVector {
             root: 1,
             nodes: vec![
-                Node::create(
-                    Some(1),
-                    Some(-1),
-                    Some(-2),
-                    LeafValue::BITS as usize,
-                    0,
-                    0
-                ),
-                Node::create(
-                    None,
-                    Some(0),
-                    Some(3),
-                    2 * LeafValue::BITS as usize,
-                    0,
-                    1
-                ),
-                Node::create(
-                    Some(3),
-                    Some(-3),
-                    Some(-4),
-                    LeafValue::BITS as usize,
-                    0,
-                    0
-                ),
+                Node::create(Some(1), Some(-1), Some(-2), LeafValue::BITS as usize, 0, 0),
+                Node::create(None, Some(0), Some(3), 2 * LeafValue::BITS as usize, 0, 1),
+                Node::create(Some(3), Some(-3), Some(-4), LeafValue::BITS as usize, 0, 0),
                 Node::create(
                     Some(1),
                     Some(2),
@@ -127,14 +133,7 @@ fn push_6_false() {
                     0,
                     0
                 ),
-                Node::create(
-                    Some(3),
-                    Some(-5),
-                    Some(-6),
-                    LeafValue::BITS as usize,
-                    0,
-                    0
-                ),
+                Node::create(Some(3), Some(-5), Some(-6), LeafValue::BITS as usize, 0, 0),
             ],
             leafs: vec![
                 Leaf::new(0),
@@ -149,6 +148,8 @@ fn push_6_false() {
     );
 }
 
+// INSERTION
+
 #[test]
 fn insert_0() {
     // test proper insertion at last position before leaf-splitting
@@ -160,21 +161,10 @@ fn insert_0() {
         d,
         DynamicBitVector {
             root: 0,
-            nodes: vec![Node::create(
-                None,
-                None,
-                Some(-1),
-                0,
-                0,
-                1
-            ),],
+            nodes: vec![Node::create(None, None, Some(-1), 0, 0, 1),],
             leafs: vec![
                 Leaf::new(0),
-                Leaf::create(
-                    0,
-                    LeafValue::MAX,
-                    LeafValue::BITS as u8,
-                ),
+                Leaf::create(0, LeafValue::MAX, LeafValue::BITS as u8,),
             ],
         }
     );
@@ -245,7 +235,6 @@ fn insert_2() {
         }
     );
 }
-
 
 // #[test]
 fn insert_3() {
@@ -378,6 +367,8 @@ fn insert_6() {
     );
 }
 
+// ROTATIONS
+
 #[test]
 fn rotate_left_1() {
     let m = LeafValue::MAX;
@@ -399,20 +390,21 @@ fn rotate_left_1() {
     };
     d.rotate_left(1, 0);
     d.viz();
-    assert_eq!(d,
-            DynamicBitVector {
-        root: 1,
-        nodes: vec![
-            Node::create(Some(1), Some(-1), Some(-2), bs, bs, 0),
-            Node::create(None, Some(0), Some(2), 2 * bs, 2 * bs, 0),
-            Node::create(Some(1), Some(-3), None, bs, bs, -1),
-        ],
-        leafs: vec![
-            Leaf::new(0),
-            Leaf::create(0, m, b),
-            Leaf::create(0, m, b),
-            Leaf::create(2, m, b),
-        ],
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 1,
+            nodes: vec![
+                Node::create(Some(1), Some(-1), Some(-2), bs, bs, 0),
+                Node::create(None, Some(0), Some(2), 2 * bs, 2 * bs, 0),
+                Node::create(Some(1), Some(-3), None, bs, bs, -1),
+            ],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(0, m, b),
+                Leaf::create(0, m, b),
+                Leaf::create(2, m, b),
+            ],
         }
     );
 }
@@ -438,20 +430,21 @@ fn rotate_right_1() {
     };
     d.rotate_right(1, 2);
     d.viz();
-    assert_eq!(d,
-            DynamicBitVector {
-        root: 1,
-        nodes: vec![
-            Node::create(Some(1), None, Some(-1), 0, 0, 1),
-            Node::create(None, Some(1), Some(2), bs, bs, 0),
-            Node::create(Some(1), Some(-2), Some(-3), bs, bs, 0),
-        ],
-        leafs: vec![
-            Leaf::new(0),
-            Leaf::create(0, m, b),
-            Leaf::create(2, m, b),
-            Leaf::create(2, m, b),
-        ],
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 1,
+            nodes: vec![
+                Node::create(Some(1), None, Some(-1), 0, 0, 1),
+                Node::create(None, Some(1), Some(2), bs, bs, 0),
+                Node::create(Some(1), Some(-2), Some(-3), bs, bs, 0),
+            ],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(0, m, b),
+                Leaf::create(2, m, b),
+                Leaf::create(2, m, b),
+            ],
         }
     );
 }
@@ -466,7 +459,7 @@ fn rotate_left_2() {
         nodes: vec![
             Node::create(None, Some(-1), Some(1), bs, bs, 2), // x
             Node::create(Some(0), Some(-2), Some(2), bs, bs, 1), // z
-            Node::create(Some(1), None, Some(-3), 0, 0, 1), // T4
+            Node::create(Some(1), None, Some(-3), 0, 0, 1),   // T4
         ],
         leafs: vec![
             Leaf::new(0),
@@ -477,20 +470,21 @@ fn rotate_left_2() {
     };
     d.rotate_left(1, 0);
     d.viz();
-    assert_eq!(d,
-            DynamicBitVector {
-        root: 1,
-        nodes: vec![
-            Node::create(Some(1), Some(-1), Some(-2), bs, bs, 0),
-            Node::create(None, Some(0), Some(2), 2 * bs, 2 * bs, 0),
-            Node::create(Some(1), None, Some(-3), 0, 0, 1),
-        ],
-        leafs: vec![
-            Leaf::new(0),
-            Leaf::create(0, m, b),
-            Leaf::create(0, m, b),
-            Leaf::create(2, m, b),
-        ],
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 1,
+            nodes: vec![
+                Node::create(Some(1), Some(-1), Some(-2), bs, bs, 0),
+                Node::create(None, Some(0), Some(2), 2 * bs, 2 * bs, 0),
+                Node::create(Some(1), None, Some(-3), 0, 0, 1),
+            ],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(0, m, b),
+                Leaf::create(0, m, b),
+                Leaf::create(2, m, b),
+            ],
         }
     );
 }
@@ -516,26 +510,303 @@ fn rotate_right_2() {
     };
     d.rotate_right(1, 2);
     d.viz();
-    assert_eq!(d,
-            DynamicBitVector {
-        root: 1,
-        nodes: vec![
-            Node::create(Some(1), Some(-1), None, bs, bs, -1),
-            Node::create(None, Some(1), Some(2), bs, bs, 0),
-            Node::create(Some(1), Some(-2), Some(-3), bs, bs, 0),
-        ],
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 1,
+            nodes: vec![
+                Node::create(Some(1), Some(-1), None, bs, bs, -1),
+                Node::create(None, Some(1), Some(2), bs, bs, 0),
+                Node::create(Some(1), Some(-2), Some(-3), bs, bs, 0),
+            ],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(0, m, b),
+                Leaf::create(2, m, b),
+                Leaf::create(2, m, b),
+            ],
+        }
+    );
+}
+
+// #[test]
+fn rotate_right_left() {
+    todo!()
+}
+
+// #[test]
+fn rotate_left_right() {
+    todo!()
+}
+
+// DELETION
+
+#[test]
+fn delete_0() {
+    let mut d = DynamicBitVector {
+        root: 0,
+        nodes: vec![Node::create(None, None, Some(-1), 0, 0, 1)],
         leafs: vec![
             Leaf::new(0),
-            Leaf::create(0, m, b),
-            Leaf::create(2, m, b),
-            Leaf::create(2, m, b),
+            Leaf::create(0, LeafValue::MAX, LeafValue::BITS as u8),
         ],
+    };
+
+    d.delete(0).unwrap();
+
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 0,
+            nodes: vec![Node::create(None, None, Some(-1), 0, 0, 1),],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(0, LeafValue::MAX / 2, LeafValue::BITS as u8 - 1),
+            ],
+        }
+    );
+}
+
+#[test]
+fn delete_steal_left_1() {
+    let b = LeafValue::BITS as usize;
+    let mut d = DynamicBitVector {
+        root: 0,
+        nodes: vec![Node::create(None, Some(-1), Some(-2), b, b, 0)],
+        leafs: vec![
+            Leaf::new(0),
+            Leaf::create(0, LeafValue::MAX, LeafValue::BITS as u8),
+            Leaf::create(
+                0,
+                LeafValue::MAX.overflowing_shr(3 * LeafValue::BITS / 4).0,
+                LeafValue::BITS as u8 / 4,
+            ),
+        ],
+    };
+    assert_eq!(d.len() as u32, 5 * LeafValue::BITS / 4);
+    d.delete(d.len() - 1).unwrap();
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 0,
+            nodes: vec![Node::create(None, Some(-1), Some(-2), b / 2, b / 2, 0),],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX.overflowing_shr(LeafValue::BITS / 2).0,
+                    LeafValue::BITS as u8 / 2
+                ),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX
+                        .overflowing_shr((LeafValue::BITS / 2) - (LeafValue::BITS / 4 - 1))
+                        .0,
+                    LeafValue::BITS as u8 / 2 + LeafValue::BITS as u8 / 4 - 1
+                ),
+            ],
         }
     );
 }
 
 
+#[test]
+fn delete_steal_left_mixed() {
+    let b = LeafValue::BITS as usize;
+    let mut d = DynamicBitVector {
+        root: 0,
+        nodes: vec![Node::create(None, Some(-1), Some(-2), b, b, 0)],
+        leafs: vec![
+            Leaf::new(0),
+            Leaf::create(0, LeafValue::MAX, LeafValue::BITS as u8),
+            Leaf::create(
+                0,
+                0,
+                LeafValue::BITS as u8 / 4,
+            ),
+        ],
+    };
+    assert_eq!(d.len() as u32, 5 * LeafValue::BITS / 4);
+    d.delete(d.len() - 1).unwrap();
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 0,
+            nodes: vec![Node::create(None, Some(-1), Some(-2), b / 2, b / 2, 0),],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX.overflowing_shr(LeafValue::BITS / 2).0,
+                    LeafValue::BITS as u8 / 2
+                ),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX
+                        .overflowing_shr(LeafValue::BITS / 2).0
+                        .overflowing_shl(LeafValue::BITS / 4 - 1).0,
+                    LeafValue::BITS as u8 / 2 + LeafValue::BITS as u8 / 4 - 1
+                ),
+            ],
+        }
+    );
+}
 
+
+#[test]
+fn delete_steal_right_1() {
+    let b = LeafValue::BITS as usize;
+    let mut d = DynamicBitVector {
+        root: 0,
+        nodes: vec![Node::create(None, Some(-1), Some(-2), b / 4, b / 4, 0)],
+        leafs: vec![
+            Leaf::new(0),
+            Leaf::create(
+                0,
+                LeafValue::MAX.overflowing_shr(3 * LeafValue::BITS / 4).0,
+                LeafValue::BITS as u8 / 4,
+            ),
+            Leaf::create(0, LeafValue::MAX, LeafValue::BITS as u8),
+        ],
+    };
+    d.delete(1).unwrap();
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 0,
+            nodes: vec![Node::create(None, Some(-1), Some(-2), b / 2 + 1, b / 2 + 1, 0),],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX
+                        .overflowing_shr((LeafValue::BITS / 2) - (LeafValue::BITS / 4 - 1))
+                        .0,
+                    LeafValue::BITS as u8 / 2 + LeafValue::BITS as u8 / 4 - 1
+                ),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX.overflowing_shr(LeafValue::BITS / 2).0,
+                    LeafValue::BITS as u8 / 2
+                ),
+            ],
+        }
+    );
+}
+
+
+#[test]
+fn delete_steal_right_0() {
+    let b = LeafValue::BITS as usize;
+    let mut d = DynamicBitVector {
+        root: 0,
+        nodes: vec![Node::create(None, Some(-1), Some(-2), b / 4, 0, 0)],
+        leafs: vec![
+            Leaf::new(0),
+            Leaf::create(
+                0,
+                0,
+                LeafValue::BITS as u8 / 4,
+            ),
+            Leaf::create(0, 0, LeafValue::BITS as u8),
+        ],
+    };
+    d.delete(1).unwrap();
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 0,
+            nodes: vec![Node::create(None, Some(-1), Some(-2), b / 2 + 1, 0, 0),],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(
+                    0,
+                    0,
+                    LeafValue::BITS as u8 / 2 + LeafValue::BITS as u8 / 4 - 1
+                ),
+                Leaf::create(
+                    0,
+                    0,
+                    LeafValue::BITS as u8 / 2
+                ),
+            ],
+        }
+    );
+}
+
+#[test]
+fn delete_steal_right_mixed() {
+    let b = LeafValue::BITS as usize;
+    let mut d = DynamicBitVector {
+        root: 0,
+        nodes: vec![Node::create(None, Some(-1), Some(-2), b / 4, 0, 0)],
+        leafs: vec![
+            Leaf::new(0),
+            Leaf::create(
+                0,
+                0,
+                LeafValue::BITS as u8 / 4,
+            ),
+            Leaf::create(0, LeafValue::MAX, LeafValue::BITS as u8),
+        ],
+    };
+    d.delete(1).unwrap();
+    assert_eq!(
+        d,
+        DynamicBitVector {
+            root: 0,
+            nodes: vec![Node::create(None, Some(-1), Some(-2), b / 2 + 1, b / 2, 0),],
+            leafs: vec![
+                Leaf::new(0),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX
+                        .overflowing_shr(LeafValue::BITS / 2).0,
+                    LeafValue::BITS as u8 / 2 + LeafValue::BITS as u8 / 4 - 1
+                ),
+                Leaf::create(
+                    0,
+                    LeafValue::MAX.overflowing_shr(LeafValue::BITS / 2).0,
+                    LeafValue::BITS as u8 / 2
+                ),
+            ],
+        }
+    );
+}
+
+
+// #[test]
+fn delete_merge_0() {
+    let b = LeafValue::BITS as usize;
+    let mut d = DynamicBitVector {
+        root: 0,
+        nodes: vec![Node::create(None, Some(-1), Some(-2), b / 4, b / 4, 0)],
+        leafs: vec![
+            Leaf::new(0),
+            Leaf::create(
+                0,
+                LeafValue::MAX.overflowing_shr(3 * LeafValue::BITS / 4).0,
+                LeafValue::BITS as u8 / 4,
+            ),
+            Leaf::create(
+                0,
+                LeafValue::MAX.overflowing_shr(3 * LeafValue::BITS / 4).0,
+                LeafValue::BITS as u8 / 4,
+            ),
+        ],
+    };
+    d.delete(0).unwrap();
+    assert_eq!(d, DynamicBitVector {
+        root: 0,
+        nodes: vec![Node::create(None, Some(-1), None, b / 2 - 1, b / 2 - 1, 0)],
+        leafs: vec![
+            Leaf::new(0),
+            Leaf::create(
+                0,
+                LeafValue::MAX.overflowing_shr(b as u32 / 2 + 1).0, b as u8 / 2 - 1),
+        ],
+    });
+}
 
 // function tests for DynamicBitVector:
 // - static: check after each chance for modification
@@ -560,16 +831,18 @@ fn rotate_right_2() {
 // - [ ] insert
 //      - [/] only 'last' place
 //      - [/] only 'first' place
+//      - [ ] last places when created `with_capacity`
 //      - [ ] random places
 //      - [ ] leaf splitting
 //      - [ ] final structure including `nums`, `ones`, `rank`
 // - [ ] flip
 //      - [ ] random places
 //      - [ ] structure modification of `nums` and `ones`
-// - [x] rotate_left
-// - [x] rotate_right
-// - [ ] rotate_right_left
-// - [ ] rotate_left_right
+// - [/] rotations
+//      - [x] rotate_left
+//      - [x] rotate_right
+//      - [ ] rotate_right_left
+//      - [ ] rotate_left_right
 // - [ ] delete
 //      - [ ] modification of `ones` and `nums`
 //      - [ ] bit stealing

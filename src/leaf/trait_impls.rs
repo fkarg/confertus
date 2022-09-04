@@ -1,4 +1,4 @@
-use super::{Dot, DynBitTree, DynBitVec, Leaf, LeafValue, StaticBitVec, fmt};
+use super::{fmt, Dot, DynBitTree, DynBitVec, Leaf, LeafValue, StaticBitVec};
 use crate::traits::*;
 
 impl Dot for Leaf {

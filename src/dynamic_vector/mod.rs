@@ -4,12 +4,11 @@ use crate::commands;
 use crate::traits::{Dot, DynBitVec, StaticBitVec};
 use either;
 use either::{Left, Right};
+use std::collections::hash_map::DefaultHasher;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use std::io::Write;
 use std::ops::{Add, Index, IndexMut};
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
-
 
 type Side<T> = either::Either<T, T>;
 
@@ -75,6 +74,28 @@ impl DynamicBitVector {
         self[leaf].access(index)
     }
 
+    // LENGTH
+
+    /// Return current number of elements in bitvector.
+    pub fn len(&self) -> usize {
+        self.apply_bitop(Self::len_leaf, Self::len_add, usize::MAX, false)
+    }
+
+    #[inline]
+    fn len_node(&self, node: usize, index: usize) -> usize {
+        self.apply_bitop_node(node, Self::len_leaf, Self::len_add, index, false)
+    }
+
+    #[inline]
+    fn len_leaf(&self, leaf: isize, index: usize, bit: bool) -> usize {
+        self[leaf].nums()
+    }
+
+    #[inline]
+    fn len_add(&self, node: usize, is_left_descendent: bool) -> usize {
+        self[node].nums
+    }
+
     // APPLY
 
     /// Descend tree to position `index` and apply function `f` with `f(self, leaf, index) -> T`.
@@ -85,11 +106,7 @@ impl DynamicBitVector {
     /// # Panics
     /// If tree invariances are violated
     #[inline]
-    pub fn apply<T>(
-        &mut self,
-        mut f: impl FnMut(&mut Self, isize, usize) -> T,
-        index: usize,
-    ) -> T {
+    pub fn apply<T>(&mut self, mut f: impl FnMut(&mut Self, isize, usize) -> T, index: usize) -> T {
         self.apply_node(self.root, f, index)
     }
 
@@ -122,8 +139,8 @@ impl DynamicBitVector {
     }
 
     /// Descend tree to position `index` and apply function `f` with `f(self, leaf, index, bit) ->
-    /// T`. Function `g` with `g(self, node, left_descent) -> T` is used to modify the return value of `f`
-    /// dependent on `node`. Its value is added to the result of recursion.
+    /// T`. Function `g` with `g(self, node, is_left_descent) -> T` is used to modify the return
+    /// value of `f` dependent on `node`. Its value is added to the result of recursion.
     ///
     /// Used to implement traversal for [`DynamicBitVector::rank`]
     ///
@@ -163,7 +180,7 @@ impl DynamicBitVector {
                     + self.apply_bitop_node(right_id as usize, f, g, index - self[node].nums, bit)
             } else {
                 // leaf
-                f(self, right_id, index - self[node].nums, bit)
+                g(self, node, false) + f(self, right_id, index - self[node].nums, bit)
             }
         } else {
             // enter left side
@@ -470,7 +487,6 @@ impl DynamicBitVector {
         // 6
         self[z].left = Some(x as isize);
 
-
         // 7
         self[z].rank = 0;
         self[x].rank = 0;
@@ -595,7 +611,6 @@ impl DynamicBitVector {
 
         // 6
         self[z].right = Some(x as isize);
-
 
         // 7
         self[z].rank = 0;
@@ -976,7 +991,9 @@ impl DynamicBitVector {
                 self.merge_leafs(leaf, neighbor);
                 self.update_left_values_node(parent);
             } else {
+                // steal so many that the other leaf will keep exactly half
                 let stolen_bits = self[n].nums - HALF as u8;
+                // let extension = neighbor.map_right(|n| self[n].split_to_left()).map_left(|n| self[n].split_to_right());
                 let extension = match neighbor {
                     Right(n) => Right(self[n].split_to_left()),
                     Left(n) => Left(self[n].split_to_right()),
@@ -1339,8 +1356,16 @@ impl DynamicBitVector {
             }
         }
         // validate correctness
-        assert_eq!(self[node].nums, n, "`nums` is wrong in Node[{node}]: {} != {n}\n{add}", self[node].nums);
-        assert_eq!(self[node].ones, o, "`ones` is wrong in Node[{node}]: {} != {o}\n{add}", self[node].ones);
+        assert_eq!(
+            self[node].nums, n,
+            "`nums` is wrong in Node[{node}]: {} != {n}\n{add}",
+            self[node].nums
+        );
+        assert_eq!(
+            self[node].ones, o,
+            "`ones` is wrong in Node[{node}]: {} != {o}\n{add}",
+            self[node].ones
+        );
 
         // check right side, add to return value
         if let Some(r) = self[node].right {
